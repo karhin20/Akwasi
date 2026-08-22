@@ -272,10 +272,12 @@ export const ListingDetailScreen: React.FC<ListingDetailScreenProps> = ({
               {listing.title}
             </h1>
 
-            <div className="flex items-center gap-1.5 text-sm text-slate-600">
-              <MapPin className="w-4 h-4 text-[#f97316] shrink-0" />
-              <span>{listing.location || `${listing.city}, Ghana`}</span>
-            </div>
+            {listing.category !== 'cars_vehicles' && listing.category !== 'heavy_machinery' && (
+              <div className="flex items-center gap-1.5 text-sm text-slate-600">
+                <MapPin className="w-4 h-4 text-[#f97316] shrink-0" />
+                <span>{listing.location || `${listing.city}, Ghana`}</span>
+              </div>
+            )}
           </div>
 
           {/* Pricing Box */}
@@ -300,9 +302,7 @@ export const ListingDetailScreen: React.FC<ListingDetailScreenProps> = ({
         {/* Listing Meta Info Bar */}
         <div className="mt-6 bg-white rounded-xl border border-slate-200 p-4 shadow-xs grid grid-cols-1 sm:grid-cols-2 gap-4 divide-y sm:divide-y-0 sm:divide-x divide-slate-100">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600 shrink-0">
-              <Building className="w-5 h-5" />
-            </div>
+            <Building className="w-5 h-5 text-slate-700 shrink-0" />
             <div>
               <div className="text-xs text-slate-500 font-medium">Type:</div>
               <div className="text-sm font-bold text-slate-900">
@@ -312,9 +312,7 @@ export const ListingDetailScreen: React.FC<ListingDetailScreenProps> = ({
           </div>
 
           <div className="flex items-center gap-3 pt-3 sm:pt-0 sm:pl-4">
-            <div className="w-10 h-10 rounded-lg bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-600 shrink-0">
-              <Clock className="w-5 h-5" />
-            </div>
+            <Clock className="w-5 h-5 text-slate-700 shrink-0" />
             <div>
               <div className="text-xs text-slate-500 font-medium">Updated:</div>
               <div className="text-sm font-bold text-slate-900">
@@ -325,10 +323,10 @@ export const ListingDetailScreen: React.FC<ListingDetailScreenProps> = ({
         </div>
 
         {/* Key Quick Specifications Row (Beds, Baths, Parking, AC) */}
-        <div className="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div className="mt-4 grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-4 lg:gap-5">
           {listing.beds !== undefined && (
-            <div className="bg-white border border-slate-200 rounded-xl p-3.5 flex items-center gap-3 shadow-xs">
-              <div className="p-2 rounded-lg bg-slate-50 text-slate-700">
+            <div className="bg-white border border-slate-200 rounded-xl p-4 flex items-center gap-3 shadow-xs">
+              <div className="text-slate-700 shrink-0">
                 <Bed className="w-5 h-5 text-[#f97316]" />
               </div>
               <div>
@@ -339,8 +337,8 @@ export const ListingDetailScreen: React.FC<ListingDetailScreenProps> = ({
           )}
 
           {listing.baths !== undefined && (
-            <div className="bg-white border border-slate-200 rounded-xl p-3.5 flex items-center gap-3 shadow-xs">
-              <div className="p-2 rounded-lg bg-slate-50 text-slate-700">
+            <div className="bg-white border border-slate-200 rounded-xl p-4 flex items-center gap-3 shadow-xs">
+              <div className="text-slate-700 shrink-0">
                 <Bath className="w-5 h-5 text-[#f97316]" />
               </div>
               <div>
@@ -351,8 +349,8 @@ export const ListingDetailScreen: React.FC<ListingDetailScreenProps> = ({
           )}
 
           {listing.parking !== undefined && (
-            <div className="bg-white border border-slate-200 rounded-xl p-3.5 flex items-center gap-3 shadow-xs">
-              <div className="p-2 rounded-lg bg-slate-50 text-slate-700">
+            <div className="bg-white border border-slate-200 rounded-xl p-4 flex items-center gap-3 shadow-xs">
+              <div className="text-slate-700 shrink-0">
                 <Car className="w-5 h-5 text-[#f97316]" />
               </div>
               <div>
@@ -363,8 +361,8 @@ export const ListingDetailScreen: React.FC<ListingDetailScreenProps> = ({
           )}
 
           {listing.conditioning && (
-            <div className="bg-white border border-slate-200 rounded-xl p-3.5 flex items-center gap-3 shadow-xs">
-              <div className="p-2 rounded-lg bg-slate-50 text-slate-700">
+            <div className="bg-white border border-slate-200 rounded-xl p-4 flex items-center gap-3 shadow-xs">
+              <div className="text-slate-700 shrink-0">
                 <Wind className="w-5 h-5 text-[#f97316]" />
               </div>
               <div>
@@ -466,8 +464,7 @@ export const ListingDetailScreen: React.FC<ListingDetailScreenProps> = ({
                 <div className="space-y-4">
                   {listing.layoutDetails.map((layout, idx) => (
                     <div key={idx} className="bg-slate-50/80 rounded-xl p-4 border border-slate-100">
-                      <h3 className="text-sm font-bold text-slate-900 mb-2 flex items-center gap-2">
-                        <Layers className="w-4 h-4 text-[#f97316]" />
+                      <h3 className="text-sm font-bold text-slate-900 mb-2">
                         <span>{layout.title}</span>
                       </h3>
                       <ul className="space-y-1.5 pl-6 list-disc text-xs sm:text-sm text-slate-600">
@@ -584,89 +581,91 @@ export const ListingDetailScreen: React.FC<ListingDetailScreenProps> = ({
             </div>
 
             {/* Interactive Location Map Card (Matches Screenshot 2) */}
-            <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm overflow-hidden">
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="font-bold text-slate-900 text-sm flex items-center gap-1.5">
-                  <MapPin className="w-4 h-4 text-[#f97316]" />
-                  <span>Location & Vicinity</span>
-                </h3>
-                <div className="flex items-center bg-slate-100 p-0.5 rounded-lg text-xs font-semibold">
+            {listing.category !== 'cars_vehicles' && listing.category !== 'heavy_machinery' && (
+              <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm overflow-hidden">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="font-bold text-slate-900 text-sm flex items-center gap-1.5">
+                    <MapPin className="w-4 h-4 text-[#f97316]" />
+                    <span>Location & Vicinity</span>
+                  </h3>
+                  <div className="flex items-center bg-slate-100 p-0.5 rounded-lg text-xs font-semibold">
+                    <button
+                      type="button"
+                      onClick={() => setMapViewType('map')}
+                      className={`px-2.5 py-1 rounded-md transition-colors ${
+                        mapViewType === 'map' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-600'
+                      }`}
+                    >
+                      Map
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setMapViewType('satellite')}
+                      className={`px-2.5 py-1 rounded-md transition-colors ${
+                        mapViewType === 'satellite' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-600'
+                      }`}
+                    >
+                      Satellite
+                    </button>
+                  </div>
+                </div>
+
+                {/* Map Canvas Graphic */}
+                <div className="relative h-48 w-full rounded-xl overflow-hidden border border-slate-200 bg-slate-100">
+                  {mapViewType === 'map' ? (
+                    <div className="w-full h-full bg-[#e5e3df] relative flex items-center justify-center">
+                      {/* Simulated Map Roads Grid */}
+                      <div className="absolute inset-0 opacity-40 bg-[radial-gradient(#94a3b8_1px,transparent_1px)] [background-size:16px_16px]" />
+                      <div className="absolute top-1/2 left-0 right-0 h-2 bg-amber-200/80 -translate-y-1/2" />
+                      <div className="absolute top-0 bottom-0 left-1/3 w-3 bg-amber-100" />
+                      <div className="absolute top-0 bottom-0 right-1/4 w-2 bg-white" />
+                      
+                      {/* Map Marker */}
+                      <div className="relative z-10 flex flex-col items-center animate-bounce">
+                        <div className="bg-[#f97316] text-white p-2 rounded-full shadow-lg ring-4 ring-orange-400/30">
+                          <MapPin className="w-5 h-5 fill-white" />
+                        </div>
+                        <div className="bg-slate-900 text-white text-[10px] font-bold px-2 py-0.5 rounded shadow mt-1 whitespace-nowrap">
+                          {listing.city || 'Ridge, Accra'}
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="w-full h-full bg-slate-800 relative flex items-center justify-center">
+                      <img
+                        src="https://images.unsplash.com/photo-1524661135-423995f22d0b?auto=format&fit=crop&w=600&q=80"
+                        alt="Satellite View"
+                        className="w-full h-full object-cover opacity-80"
+                        referrerPolicy="no-referrer"
+                      />
+                      <div className="relative z-10 flex flex-col items-center">
+                        <div className="bg-[#f97316] text-white p-2 rounded-full shadow-lg ring-4 ring-orange-400/40">
+                          <MapPin className="w-5 h-5 fill-white" />
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                <div className="mt-3 text-xs text-slate-600 flex items-start gap-1.5">
+                  <Compass className="w-4 h-4 text-slate-400 shrink-0 mt-0.5" />
+                  <span>{listing.location || 'Prestigious Ridge Residential Enclave, Greater Accra'}</span>
+                </div>
+
+                {/* Report Property Link */}
+                <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between">
                   <button
                     type="button"
-                    onClick={() => setMapViewType('map')}
-                    className={`px-2.5 py-1 rounded-md transition-colors ${
-                      mapViewType === 'map' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-600'
-                    }`}
+                    onClick={() => setIsReportOpen(true)}
+                    className="text-xs text-slate-500 hover:text-red-600 font-medium flex items-center gap-1 transition-colors cursor-pointer"
                   >
-                    Map
+                    <Flag className="w-3.5 h-3.5" />
+                    <span>Report this listing</span>
                   </button>
-                  <button
-                    type="button"
-                    onClick={() => setMapViewType('satellite')}
-                    className={`px-2.5 py-1 rounded-md transition-colors ${
-                      mapViewType === 'satellite' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-600'
-                    }`}
-                  >
-                    Satellite
-                  </button>
+                  <span className="text-[10px] text-slate-400">ID: {listing.id.substring(0, 10)}</span>
                 </div>
               </div>
-
-              {/* Map Canvas Graphic */}
-              <div className="relative h-48 w-full rounded-xl overflow-hidden border border-slate-200 bg-slate-100">
-                {mapViewType === 'map' ? (
-                  <div className="w-full h-full bg-[#e5e3df] relative flex items-center justify-center">
-                    {/* Simulated Map Roads Grid */}
-                    <div className="absolute inset-0 opacity-40 bg-[radial-gradient(#94a3b8_1px,transparent_1px)] [background-size:16px_16px]" />
-                    <div className="absolute top-1/2 left-0 right-0 h-2 bg-amber-200/80 -translate-y-1/2" />
-                    <div className="absolute top-0 bottom-0 left-1/3 w-3 bg-amber-100" />
-                    <div className="absolute top-0 bottom-0 right-1/4 w-2 bg-white" />
-                    
-                    {/* Map Marker */}
-                    <div className="relative z-10 flex flex-col items-center animate-bounce">
-                      <div className="bg-[#f97316] text-white p-2 rounded-full shadow-lg ring-4 ring-orange-400/30">
-                        <MapPin className="w-5 h-5 fill-white" />
-                      </div>
-                      <div className="bg-slate-900 text-white text-[10px] font-bold px-2 py-0.5 rounded shadow mt-1 whitespace-nowrap">
-                        {listing.city || 'Ridge, Accra'}
-                      </div>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="w-full h-full bg-slate-800 relative flex items-center justify-center">
-                    <img
-                      src="https://images.unsplash.com/photo-1524661135-423995f22d0b?auto=format&fit=crop&w=600&q=80"
-                      alt="Satellite View"
-                      className="w-full h-full object-cover opacity-80"
-                      referrerPolicy="no-referrer"
-                    />
-                    <div className="relative z-10 flex flex-col items-center">
-                      <div className="bg-[#f97316] text-white p-2 rounded-full shadow-lg ring-4 ring-orange-400/40">
-                        <MapPin className="w-5 h-5 fill-white" />
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              <div className="mt-3 text-xs text-slate-600 flex items-start gap-1.5">
-                <Compass className="w-4 h-4 text-slate-400 shrink-0 mt-0.5" />
-                <span>{listing.location || 'Prestigious Ridge Residential Enclave, Greater Accra'}</span>
-              </div>
-
-              {/* Report Property Link */}
-              <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between">
-                <button
-                  type="button"
-                  onClick={() => setIsReportOpen(true)}
-                  className="text-xs text-slate-500 hover:text-red-600 font-medium flex items-center gap-1 transition-colors cursor-pointer"
-                >
-                  <Flag className="w-3.5 h-3.5" />
-                  <span>Report this listing</span>
-                </button>
-                <span className="text-[10px] text-slate-400">ID: {listing.id.substring(0, 10)}</span>
-              </div>
-            </div>
+            )}
           </div>
         </div>
 
@@ -718,10 +717,12 @@ export const ListingDetailScreen: React.FC<ListingDetailScreenProps> = ({
                       <h4 className="font-bold text-slate-900 text-sm group-hover:text-[#f97316] transition-colors line-clamp-1">
                         {item.title}
                       </h4>
-                      <div className="flex items-center gap-1 text-xs text-slate-500 mt-1">
-                        <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                        <span className="truncate">{item.location || item.city}</span>
-                      </div>
+                      {item.category !== 'cars_vehicles' && item.category !== 'heavy_machinery' && (
+                        <div className="flex items-center gap-1 text-xs text-slate-500 mt-1">
+                          <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                          <span className="truncate">{item.location || item.city}</span>
+                        </div>
+                      )}
                     </div>
                     <div className="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between">
                       <span className="text-base font-extrabold text-slate-900">

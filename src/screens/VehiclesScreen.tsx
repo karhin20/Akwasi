@@ -10,7 +10,6 @@ import {
   X,
   SlidersHorizontal,
   RotateCcw,
-  MapPin,
   Check,
   PanelLeftClose,
   PanelLeftOpen
@@ -97,15 +96,24 @@ export const VehiclesScreen: React.FC<VehiclesScreenProps> = ({
   // Filter and Sort Logic
   const filteredListings = useMemo(() => {
     return listings.filter((item) => {
+      // Always exclude real estate properties from the Vehicles screen
+      if (item.category === 'properties') {
+        return false;
+      }
+
       // Category filter
-      if (categoryFilter === 'heavy_machinery' && item.category !== 'heavy_machinery') {
-        return false;
-      }
-      if (categoryFilter === 'commercial_trucks' && item.bodyType !== 'Commercial Truck') {
-        return false;
-      }
-      if (categoryFilter === 'cars_vehicles' && item.category !== 'cars_vehicles') {
-        return false;
+      if (categoryFilter === 'all' || categoryFilter === 'cars_vehicles') {
+        if (item.category !== 'cars_vehicles') {
+          return false;
+        }
+      } else if (categoryFilter === 'heavy_machinery') {
+        if (item.category !== 'heavy_machinery') {
+          return false;
+        }
+      } else if (categoryFilter === 'commercial_trucks') {
+        if (item.bodyType !== 'Commercial Truck') {
+          return false;
+        }
       }
 
       // Body Type filter
@@ -625,22 +633,14 @@ export const VehiclesScreen: React.FC<VehiclesScreenProps> = ({
 
           {/* Bento Grid */}
           <div className={`grid grid-cols-1 sm:grid-cols-2 ${desktopFiltersVisible ? 'lg:grid-cols-3' : 'lg:grid-cols-3 xl:grid-cols-4'} gap-6`}>
-            {paginatedListings.map((item, index) => {
-              const isFeaturedSpan = item.featured && index === 0;
-
+            {paginatedListings.map((item) => {
               return (
                 <div
                   key={item.id}
-                  className={`bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm hover:shadow-md hover:border-slate-300 transition-all flex flex-col group ${
-                    isFeaturedSpan ? 'sm:col-span-2 lg:col-span-2' : ''
-                  }`}
+                  className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm hover:shadow-md hover:border-slate-300 transition-all flex flex-col group"
                 >
                   {/* Card Image */}
-                  <div
-                    className={`bg-slate-100 relative overflow-hidden ${
-                      isFeaturedSpan ? 'h-64 sm:h-72' : 'h-52'
-                    }`}
-                  >
+                  <div className="bg-slate-100 relative overflow-hidden h-52">
                     <img
                       src={item.image}
                       alt={item.title}
@@ -660,12 +660,6 @@ export const VehiclesScreen: React.FC<VehiclesScreenProps> = ({
                         </span>
                       )}
                     </div>
-
-                    {/* Location Badge */}
-                    <span className="absolute bottom-2 left-2 bg-slate-900/80 backdrop-blur-xs text-white text-[11px] px-2.5 py-1 rounded-md font-medium flex items-center gap-1">
-                      <MapPin className="w-3 h-3 text-orange-400" />
-                      <span>{item.location}</span>
-                    </span>
                   </div>
 
                   {/* Card Content */}
@@ -722,7 +716,7 @@ export const VehiclesScreen: React.FC<VehiclesScreenProps> = ({
                     {/* Card CTA */}
                     <button
                       onClick={() => onSelectListing(item)}
-                      className="w-full bg-slate-900 hover:bg-[#f97316] text-white font-sans text-sm font-medium py-2.5 rounded-lg transition-all cursor-pointer shadow-2xs"
+                      className="w-full bg-transparent hover:bg-slate-900 text-slate-900 hover:text-white border border-slate-900 font-sans text-sm font-semibold py-2.5 rounded-full transition-all cursor-pointer text-center"
                     >
                       View Details
                     </button>

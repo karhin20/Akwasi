@@ -100,10 +100,12 @@ export const ListingDetailModal: React.FC<ListingDetailModalProps> = ({
                 alt={listing.title}
                 className="w-full h-full object-cover"
               />
-              <div className="absolute bottom-3 left-3 bg-slate-900/85 backdrop-blur-xs text-white px-3 py-1 rounded-md text-xs flex items-center gap-1.5">
-                <MapPin className="w-3.5 h-3.5 text-orange-400" />
-                <span>{listing.location}, Ghana</span>
-              </div>
+              {listing.category !== 'cars_vehicles' && listing.category !== 'heavy_machinery' && (
+                <div className="absolute bottom-3 left-3 bg-slate-900/85 backdrop-blur-xs text-white px-3 py-1 rounded-md text-xs flex items-center gap-1.5">
+                  <MapPin className="w-3.5 h-3.5 text-orange-400" />
+                  <span>{listing.location}, Ghana</span>
+                </div>
+              )}
             </div>
 
             {/* Title, Price, and Quick Action Summary */}

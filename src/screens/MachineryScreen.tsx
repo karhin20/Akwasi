@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { ListingItem } from '../types';
-import { Calendar, Clock, ShieldCheck, MapPin, Search } from 'lucide-react';
+import { Calendar, Clock, ShieldCheck, Search } from 'lucide-react';
 
 interface MachineryScreenProps {
   listings: ListingItem[];
@@ -109,11 +109,6 @@ export const MachineryScreen: React.FC<MachineryScreenProps> = ({
                     Price Reduced
                   </span>
                 )}
-
-                <span className="absolute bottom-2 left-2 bg-slate-900/80 backdrop-blur-xs text-white text-[11px] px-2.5 py-1 rounded-md font-medium flex items-center gap-1">
-                  <MapPin className="w-3 h-3 text-orange-400" />
-                  <span>{item.location}</span>
-                </span>
               </div>
 
               <div className="p-5 flex flex-col flex-grow justify-between">
@@ -155,9 +150,9 @@ export const MachineryScreen: React.FC<MachineryScreenProps> = ({
 
                 <button
                   onClick={() => onSelectListing(item)}
-                  className="w-full bg-slate-900 hover:bg-[#f97316] text-white font-sans text-sm font-medium py-2.5 rounded-lg transition-colors cursor-pointer"
+                  className="w-full bg-transparent hover:bg-slate-900 text-slate-900 hover:text-white border border-slate-900 font-sans text-sm font-semibold py-2.5 rounded-full transition-all cursor-pointer text-center"
                 >
-                  View Details & Specs
+                  View Details &amp; Specs
                 </button>
               </div>
             </div>

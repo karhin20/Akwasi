@@ -165,7 +165,7 @@ export const PropertiesScreen: React.FC<PropertiesScreenProps> = ({
 
                 <button
                   onClick={() => onSelectListing(item)}
-                  className="w-full bg-slate-900 hover:bg-[#f97316] text-white font-sans text-sm font-medium py-2.5 rounded-lg transition-colors cursor-pointer"
+                  className="w-full bg-transparent hover:bg-slate-900 text-slate-900 hover:text-white border border-slate-900 font-sans text-sm font-semibold py-2.5 rounded-full transition-all cursor-pointer text-center"
                 >
                   View Property Details
                 </button>

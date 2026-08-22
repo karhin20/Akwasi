@@ -256,10 +256,6 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
                             FEATURED
                           </span>
                         )}
-                        <span className="absolute bottom-2 left-2 bg-slate-900/80 backdrop-blur-xs text-white text-[11px] px-2.5 py-1 rounded-md font-medium flex items-center gap-1">
-                          <MapPin className="w-3 h-3 text-orange-400" />
-                          <span>{item.location}</span>
-                        </span>
                       </div>
 
                       <div className="p-5 flex flex-col flex-grow justify-between">
@@ -294,7 +290,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
 
                         <button
                           onClick={() => onSelectListing(item)}
-                          className="w-full bg-slate-900 hover:bg-[#f97316] text-white font-sans text-sm font-semibold py-2.5 rounded-lg transition-colors cursor-pointer text-center"
+                          className="w-full bg-transparent hover:bg-slate-900 text-slate-900 hover:text-white border border-slate-900 font-sans text-sm font-semibold py-2.5 rounded-full transition-all cursor-pointer text-center"
                         >
                           View Details &amp; Specs
                         </button>
@@ -392,7 +388,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
 
                         <button
                           onClick={() => onSelectListing(prop)}
-                          className="w-full bg-slate-900 hover:bg-[#f97316] text-white font-sans text-sm font-semibold py-2.5 rounded-lg transition-colors cursor-pointer text-center"
+                          className="w-full bg-transparent hover:bg-slate-900 text-slate-900 hover:text-white border border-slate-900 font-sans text-sm font-semibold py-2.5 rounded-full transition-all cursor-pointer text-center"
                         >
                           View Property Details
                         </button>
@@ -510,10 +506,6 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
                             FEATURED
                           </span>
                         )}
-                        <span className="absolute bottom-2 left-2 bg-slate-900/80 backdrop-blur-xs text-white text-[11px] px-2.5 py-1 rounded-md font-medium flex items-center gap-1">
-                          <MapPin className="w-3 h-3 text-orange-400" />
-                          <span>{veh.location}</span>
-                        </span>
                       </div>
 
                       <div className="p-5 flex flex-col flex-grow justify-between">
@@ -543,7 +535,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
 
                         <button
                           onClick={() => onSelectListing(veh)}
-                          className="w-full bg-slate-900 hover:bg-[#f97316] text-white font-sans text-sm font-semibold py-2.5 rounded-lg transition-colors cursor-pointer text-center"
+                          className="w-full bg-transparent hover:bg-slate-900 text-slate-900 hover:text-white border border-slate-900 font-sans text-sm font-semibold py-2.5 rounded-full transition-all cursor-pointer text-center"
                         >
                           View Vehicle Specs
                         </button>

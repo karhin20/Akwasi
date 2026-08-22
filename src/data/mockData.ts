@@ -186,6 +186,102 @@ export const INITIAL_LISTINGS: ListingItem[] = [
     }
   },
   {
+    id: 'veh-lc300-2023',
+    title: '2023 Toyota Land Cruiser 300 VXR',
+    category: 'cars_vehicles',
+    subCategory: 'SUV',
+    price: 1850000,
+    currency: 'GHS',
+    priceFormatted: 'GHS 1,850,000',
+    priceUsd: 'USD ~148,000',
+    featured: true,
+    image: 'https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?auto=format&fit=crop&w=1200&q=80',
+    gallery: [
+      'https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?auto=format&fit=crop&w=1200&q=80',
+      'https://images.unsplash.com/photo-1559416523-140ddc3d238c?auto=format&fit=crop&w=1200&q=80',
+      'https://images.unsplash.com/photo-1605559424843-9e4c228bf1c2?auto=format&fit=crop&w=1200&q=80'
+    ],
+    description: '3.5L V6 Twin-Turbo Petrol - Fullest Option VXR. Brand new zero mileage executive SUV with JBL 14-speaker audio, rear seat entertainment displays, 360 camera, adaptive variable suspension, and beige leather interior.',
+    location: 'Airport Residential Area, Accra',
+    city: 'Accra',
+    year: 2023,
+    mileage: '1,500 km',
+    bodyType: 'SUV',
+    make: 'Toyota',
+    model: 'Land Cruiser 300 VXR',
+    fuelType: 'Petrol',
+    transmission: 'Automatic',
+    condition: 'Brand New',
+    updatedTime: '1 day ago',
+    features: [
+      '3.5L V6 Twin-Turbo Petrol Engine generating 409 HP',
+      '10-speed Direct Shift automatic transmission with paddle shifters',
+      'JBL Premium 14-Speaker surround sound system',
+      'Dual 11.6-inch rear seat entertainment touchscreens',
+      'Multi-Terrain Select (MTS) & Crawl Control system'
+    ],
+    specs: [
+      { label: 'Mileage', value: '1.5k km', icon: 'speed' },
+      { label: 'Location', value: 'Airport Residential', icon: 'location_on' },
+      { label: 'Engine', value: '3.5L V6 Twin Turbo', icon: 'local_gas_station' },
+      { label: 'Transmission', value: '10-Speed Auto', icon: 'settings' }
+    ],
+    seller: {
+      name: 'Accra Executive Auto Gallery',
+      phone: '+233 24 333 4455',
+      whatsapp: '+233 24 333 4455',
+      verified: true,
+      location: 'Airport Residential, Accra'
+    }
+  },
+  {
+    id: 'veh-mb-gle450-2022',
+    title: '2022 Mercedes-Benz GLE 450 4MATIC',
+    category: 'cars_vehicles',
+    subCategory: 'SUV',
+    price: 1350000,
+    currency: 'GHS',
+    priceFormatted: 'GHS 1,350,000',
+    priceUsd: 'USD ~108,000',
+    featured: false,
+    image: 'https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?auto=format&fit=crop&w=1200&q=80',
+    gallery: [
+      'https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?auto=format&fit=crop&w=1200&q=80',
+      'https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=1200&q=80'
+    ],
+    description: '3.0L Turbo Inline-6 with EQ Boost. AMG Line styling package, panoramic sunroof, Burmester sound, ambient lighting, and panoramic dual 12.3-inch MBUX displays.',
+    location: 'Cantonments, Accra',
+    city: 'Accra',
+    year: 2022,
+    mileage: '22,000 km',
+    bodyType: 'SUV',
+    make: 'Mercedes-Benz',
+    model: 'GLE 450 4MATIC AMG Line',
+    fuelType: 'Petrol',
+    transmission: 'Automatic',
+    condition: 'Excellent Condition',
+    updatedTime: '2 days ago',
+    features: [
+      '3.0L Turbo Inline-6 engine with 48V Mild Hybrid EQ Boost',
+      'AMG Line exterior styling & 21-inch AMG multi-spoke alloy wheels',
+      'Burmester Surround Sound system',
+      'Panoramic sliding glass sunroof'
+    ],
+    specs: [
+      { label: 'Mileage', value: '22k km', icon: 'speed' },
+      { label: 'Location', value: 'Cantonments', icon: 'location_on' },
+      { label: 'Fuel', value: 'Petrol', icon: 'local_gas_station' },
+      { label: 'Drivetrain', value: '4MATIC AWD', icon: 'settings' }
+    ],
+    seller: {
+      name: 'Star Motors Ghana',
+      phone: '+233 30 277 8899',
+      whatsapp: '+233 24 111 2233',
+      verified: true,
+      location: 'Cantonments, Accra'
+    }
+  },
+  {
     id: 'veh-mb-actros-2018',
     title: '2018 MB Actros 3344',
     category: 'cars_vehicles',
