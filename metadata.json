@@ -1,0 +1,6 @@
+{
+  "name": "AkwasiJob Marketplace",
+  "description": "Ghana's premier marketplace for heavy machinery, commercial properties, and commercial vehicles.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
