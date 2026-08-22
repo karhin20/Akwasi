@@ -1,4 +1,4 @@
-export type ScreenType = 'home' | 'vehicles' | 'machinery' | 'properties' | 'services' | 'listing_detail';
+export type ScreenType = 'home' | 'vehicles' | 'machinery' | 'properties' | 'services' | 'listing_detail' | 'admin';
 
 export type CategoryType = 'vehicles' | 'machinery' | 'properties';
 
@@ -9,6 +9,7 @@ export interface ListingItem {
   title: string;
   category: 'cars_vehicles' | 'heavy_machinery' | 'properties';
   subCategory?: string;
+  status?: 'published' | 'pending' | 'draft' | 'rejected';
   price: number;
   currency: string;
   priceFormatted: string;
@@ -58,6 +59,22 @@ export interface ListingItem {
     verified: boolean;
     location: string;
   };
+}
+
+export interface EnquiryItem {
+  id: string;
+  customerName: string;
+  phone: string;
+  email?: string;
+  category: string;
+  source: 'ai_assistant' | 'whatsapp' | 'form';
+  message: string;
+  aiConversationSnippet?: {
+    userPrompt: string;
+    botAnswer: string;
+  };
+  itemTitle?: string;
+  timestamp: string;
 }
 
 export interface FilterState {

@@ -25,25 +25,9 @@ export const ListingDetailModal: React.FC<ListingDetailModalProps> = ({
   listing,
   onClose
 }) => {
-  const [inquiryName, setInquiryName] = useState('');
-  const [inquiryPhone, setInquiryPhone] = useState('');
-  const [inquiryMessage, setInquiryMessage] = useState('');
-  const [inquirySent, setInquirySent] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
 
   if (!listing) return null;
-
-  const handleSendInquiry = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!inquiryName || !inquiryPhone) return;
-    setInquirySent(true);
-    setTimeout(() => {
-      setInquirySent(false);
-      setInquiryName('');
-      setInquiryPhone('');
-      setInquiryMessage('');
-    }, 4000);
-  };
 
   const handleShare = () => {
     navigator.clipboard.writeText(window.location.href);
@@ -282,46 +266,38 @@ export const ListingDetailModal: React.FC<ListingDetailModalProps> = ({
             </p>
           </div>
 
-          {/* Quick Inquiry Form */}
+          {/* Direct WhatsApp & Phone Inspection Booking */}
           <div className="border-t border-slate-200 pt-6">
             <h3 className="font-heading text-lg font-bold text-slate-900 mb-3">
               Request Official Quotation or Schedule Site Visit
             </h3>
 
-            {inquirySent ? (
-              <div className="bg-emerald-50 border border-emerald-300 text-emerald-800 p-4 rounded-xl flex items-center gap-3">
-                <CheckCircle2 className="w-6 h-6 text-emerald-600 shrink-0" />
-                <div>
-                  <div className="font-bold text-sm">Inquiry Transmitted Successfully!</div>
-                  <div className="text-xs text-emerald-700">The verified asset manager will contact you within 30 minutes.</div>
-                </div>
+            <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div className="space-y-1 text-center sm:text-left">
+                <div className="text-sm font-bold text-slate-900">Direct Contact with Verified Seller</div>
+                <div className="text-xs text-slate-500">Connect instantly via WhatsApp or phone call for price quotes &amp; site visit booking.</div>
               </div>
-            ) : (
-              <form onSubmit={handleSendInquiry} className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <input
-                  type="text"
-                  placeholder="Your Full Name"
-                  required
-                  value={inquiryName}
-                  onChange={(e) => setInquiryName(e.target.value)}
-                  className="bg-white border border-slate-200 rounded-lg p-2.5 text-sm text-slate-900 focus:border-[#f97316] outline-none"
-                />
-                <input
-                  type="tel"
-                  placeholder="Your Phone / WhatsApp"
-                  required
-                  value={inquiryPhone}
-                  onChange={(e) => setInquiryPhone(e.target.value)}
-                  className="bg-white border border-slate-200 rounded-lg p-2.5 text-sm text-slate-900 focus:border-[#f97316] outline-none"
-                />
-                <button
-                  type="submit"
-                  className="bg-[#f97316] hover:bg-[#ea580c] text-white font-semibold text-sm py-2.5 px-4 rounded-lg transition-colors cursor-pointer shadow-sm"
+
+              <div className="flex items-center gap-2.5 w-full sm:w-auto shrink-0">
+                <a
+                  href={`tel:${(listing.seller?.phone || '233244123456').replace(/[^0-9+]/g, '')}`}
+                  className="flex-1 sm:flex-initial bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs py-2.5 px-4 rounded-xl transition-colors cursor-pointer flex items-center justify-center gap-1.5"
                 >
-                  Send Inquiry Now
-                </button>
-              </form>
-            )}
+                  <Phone className="w-3.5 h-3.5" />
+                  <span>Call Seller</span>
+                </a>
+
+                <a
+                  href={`https://wa.me/${(listing.seller?.whatsapp || '233244123456').replace(/[^0-9]/g, '')}?text=Hello,%20I%20am%20interested%20in%20requesting%20a%20quotation/inspection%20for%20${encodeURIComponent(listing.title)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex-1 sm:flex-initial bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs py-2.5 px-4 rounded-xl transition-colors cursor-pointer flex items-center justify-center gap-1.5 shadow-xs"
+                >
+                  <MessageSquare className="w-3.5 h-3.5" />
+                  <span>WhatsApp Inspection</span>
+                </a>
+              </div>
+            </div>
           </div>
         </div>
 

@@ -9,9 +9,11 @@ import { MachineryScreen } from './screens/MachineryScreen';
 import { PropertiesScreen } from './screens/PropertiesScreen';
 import { ServicesScreen } from './screens/ServicesScreen';
 import { ListingDetailScreen } from './screens/ListingDetailScreen';
+import { AdminScreen } from './screens/AdminScreen';
 import { PostListingModal } from './components/PostListingModal';
 import { AccountModal } from './components/AccountModal';
 import { ServicesModal } from './components/ServicesModal';
+import { EnquiryChatWidget } from './components/EnquiryChatWidget';
 
 export function App() {
   const [currentScreen, setCurrentScreen] = useState<ScreenType>('home');
@@ -84,7 +86,10 @@ export function App() {
           }
         }}
         onOpenPostListing={() => setIsPostModalOpen(true)}
-        onOpenAccount={() => setIsAccountModalOpen(true)}
+        onOpenAccount={() => {
+          setCurrentScreen('admin');
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }}
       />
 
       {/* Screen Render */}
@@ -148,6 +153,20 @@ export function App() {
             allListings={listings}
           />
         )}
+
+        {currentScreen === 'admin' && (
+          <AdminScreen
+            listings={listings}
+            onUpdateListings={setListings}
+            onNavigate={(screen) => {
+              setPreviousScreen('admin');
+              setCurrentScreen(screen);
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+            onOpenListingDetail={handleOpenListingDetail}
+            onOpenCreateListing={() => setIsPostModalOpen(true)}
+          />
+        )}
       </div>
 
       {/* Industrial Footer */}
@@ -193,6 +212,9 @@ export function App() {
           onClose={() => setActiveServiceModal(null)}
         />
       )}
+
+      {/* Floating Enquiries & Chatbot Widget */}
+      <EnquiryChatWidget />
     </div>
   );
 }

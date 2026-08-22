@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, Menu, X, User } from 'lucide-react';
+import { Search, Menu, X, User, ShieldCheck } from 'lucide-react';
 import { ScreenType } from '../types';
 
 interface HeaderProps {
@@ -95,6 +95,7 @@ export const Header: React.FC<HeaderProps> = ({
             >
               Services
             </button>
+
           </nav>
         </div>
 
@@ -116,15 +117,19 @@ export const Header: React.FC<HeaderProps> = ({
             />
           </form>
 
-          {/* User / Human Avatar Button */}
+          {/* User / Human Avatar Button -> Admin Page */}
           <button
             id="user-avatar-btn"
-            onClick={onOpenAccount}
-            className="w-10 h-10 rounded-full bg-slate-100 hover:bg-orange-50 border border-slate-200 hover:border-orange-300 text-slate-700 hover:text-orange-600 flex items-center justify-center transition-all cursor-pointer shadow-2xs group"
-            title="My Account & Profile"
-            aria-label="User Profile"
+            onClick={() => onNavigate('admin')}
+            className={`w-10 h-10 rounded-full border text-slate-700 flex items-center justify-center transition-all cursor-pointer shadow-2xs group ${
+              currentScreen === 'admin'
+                ? 'bg-slate-900 text-white border-slate-900'
+                : 'bg-slate-100 hover:bg-slate-200 border-slate-200 hover:border-slate-300'
+            }`}
+            title="Admin Management Portal"
+            aria-label="Admin Portal"
           >
-            <User className="w-5 h-5 transition-transform group-hover:scale-105" />
+            <User className={`w-5 h-5 transition-transform group-hover:scale-105 ${currentScreen === 'admin' ? 'text-white' : 'text-slate-700'}`} />
           </button>
 
           {/* Mobile Menu Toggle */}
@@ -207,15 +212,15 @@ export const Header: React.FC<HeaderProps> = ({
           <div className="pt-2 border-t border-slate-100">
             <button
               onClick={() => {
-                onOpenAccount();
+                onNavigate('admin');
                 setMobileMenuOpen(false);
               }}
               className="w-full flex items-center gap-3 p-2.5 rounded-lg text-sm font-medium text-slate-800 hover:bg-slate-100 transition-colors"
             >
-              <div className="w-8 h-8 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-700">
-                <User className="w-4 h-4" />
+              <div className="w-8 h-8 rounded-full bg-slate-900 border border-slate-900 flex items-center justify-center text-white">
+                <User className="w-4 h-4 text-white" />
               </div>
-              <span className="font-semibold text-slate-900">My Account &amp; Profile</span>
+              <span className="font-semibold text-slate-900">Admin Account Portal</span>
             </button>
           </div>
         </div>
