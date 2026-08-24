@@ -1,12 +1,21 @@
 /**
  * Centralized API client.
- * All requests go to /api/* — proxied to the Express backend in dev,
- * served from the same origin in production.
+ * Automatically resolves backend endpoint without relying on build-time environment flags:
+ * - On localhost: calls local Express server at http://localhost:3001/api
+ * - On production (Vercel): calls live Express backend at https://kwasib-two.vercel.app/api
  */
 
-const BASE = import.meta.env.API_URL
-  ? `${import.meta.env.API_URL.replace(/\/$/, '')}/api`
-  : (import.meta.env.PROD ? 'https://kwasib-two.vercel.app/api' : '/api');
+const getApiBase = (): string => {
+  if (typeof window !== 'undefined') {
+    const hostname = window.location.hostname;
+    if (hostname === 'localhost' || hostname === '127.0.0.1') {
+      return 'http://localhost:3001/api';
+    }
+  }
+  return 'https://kwasib-two.vercel.app/api';
+};
+
+const BASE = getApiBase();
 
 // ─── Auth token helpers ───────────────────────────────────────────────────────
 const TOKEN_KEY = 'akwasi_admin_token';
