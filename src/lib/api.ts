@@ -5,17 +5,9 @@
  * - On production (Vercel): calls live Express backend at https://kwasib-two.vercel.app/api
  */
 
-const getApiBase = (): string => {
-  if (typeof window !== 'undefined') {
-    const hostname = window.location.hostname;
-    if (hostname === 'localhost' || hostname === '127.0.0.1') {
-      return 'http://localhost:3001/api';
-    }
-  }
-  return 'https://kwasib-two.vercel.app/api';
-};
-
-const BASE = getApiBase();
+const BASE = typeof window !== 'undefined' && window.location.hostname.includes('localhost')
+  ? 'http://localhost:3001/api'
+  : 'https://kwasib-two.vercel.app/api';
 
 // ─── Auth token helpers ───────────────────────────────────────────────────────
 const TOKEN_KEY = 'akwasi_admin_token';
