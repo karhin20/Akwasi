@@ -78,7 +78,7 @@ export const ServicesModal: React.FC<ServicesModalProps> = ({
                 Property Management
               </div>
               <div className="text-xs text-slate-500 mt-1">
-                Tenant leasing, commercial facility upkeep & rent escrow oversight.
+                Tenant leasing, commercial facility upkeep &amp; rent collection management.
               </div>
             </button>
           </div>

@@ -615,10 +615,10 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
 
           <div>
             <h4 className="font-heading font-bold text-base text-slate-900 mb-1">
-              Secure Escrow Clearance
+              Verified Physical Inspection
             </h4>
             <p className="text-xs text-slate-500 leading-relaxed">
-              Funds remain in protected escrow until machinery and title deeds pass full verification and physical site handover.
+              Physical site inspection scheduling and thorough document verification prior to handover.
             </p>
           </div>
 

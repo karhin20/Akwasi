@@ -117,7 +117,7 @@ export const ListingDetailModal: React.FC<ListingDetailModalProps> = ({
                   </div>
                   <div className="text-xs text-emerald-700 font-medium mt-1.5 flex items-center gap-1">
                     <ShieldCheck className="w-4 h-4 text-emerald-600" />
-                    <span>Eligible for AkwasiJob Inspection & Escrow</span>
+                    <span>Eligible for AkwasiJob Inspection &amp; Verification</span>
                   </div>
                 </div>
               </div>
