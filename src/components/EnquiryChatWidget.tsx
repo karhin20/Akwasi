@@ -152,7 +152,7 @@ export const EnquiryChatWidget: React.FC<EnquiryChatWidgetProps> = () => {
                 <h3 className="font-bold text-sm leading-snug">Digital Assistant</h3>
                 <span className="text-[11px] text-emerald-400 flex items-center gap-1 font-medium">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                  24/7 Online Assistant
+                  Your 24/7 Online Assistant
                 </span>
               </div>
             </div>
