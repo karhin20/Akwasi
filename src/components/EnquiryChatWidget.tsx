@@ -69,7 +69,7 @@ export const EnquiryChatWidget: React.FC<EnquiryChatWidgetProps> = () => {
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([
     {
       sender: 'bot',
-      text: 'Hello! 👋 Welcome to our Heavy Equipment, Vehicles & Property Marketplace. How can I assist you today?',
+      text: 'Hello! 👋 How can I assist you today with our equipment, vehicles, or properties?',
       time: 'Just now',
     },
   ]);
