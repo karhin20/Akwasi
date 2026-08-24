@@ -1,5 +1,64 @@
-import React, { useState } from 'react';
-import { MessageSquare, Bot, X, Send, Sparkles, CheckCircle2, Phone, Mail, User, HelpCircle } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import { MessageSquare, Bot, X, Send, Sparkles } from 'lucide-react';
+import { chat as chatApi } from '../lib/api';
+
+interface ChatMessage {
+  sender: 'user' | 'bot';
+  text: string;
+  time: string;
+}
+
+interface ConversationTurn {
+  role: 'user' | 'model';
+  parts: Array<{ text: string }>;
+}
+
+// FormattedText component to render bold tokens (**text**), bullet items (- item), and paragraphs cleanly
+const FormattedText: React.FC<{ text: string; isUser?: boolean }> = ({ text, isUser }) => {
+  const lines = text.split('\n');
+
+  return (
+    <div className={`space-y-1 text-xs leading-relaxed ${isUser ? 'text-white' : 'text-slate-800'}`}>
+      {lines.map((line, lineIdx) => {
+        const trimmed = line.trim();
+        if (!trimmed) return <div key={lineIdx} className="h-0.5" />;
+
+        // Check if bullet item
+        const isBullet = trimmed.startsWith('- ') || trimmed.startsWith('* ') || trimmed.startsWith('• ');
+        const content = isBullet ? trimmed.substring(2).trim() : trimmed;
+
+        // Parse **bold** markdown tokens
+        const parts = content.split(/(\*\*.*?\*\*)/g);
+        const renderedParts = parts.map((part, partIdx) => {
+          if (part.startsWith('**') && part.endsWith('**')) {
+            return (
+              <strong
+                key={partIdx}
+                className={isUser ? 'font-black text-white' : 'font-extrabold text-slate-900'}
+              >
+                {part.slice(2, -2)}
+              </strong>
+            );
+          }
+          return part;
+        });
+
+        if (isBullet) {
+          return (
+            <div key={lineIdx} className="flex items-start gap-1.5 pl-1 my-0.5">
+              <span className={`font-bold text-xs shrink-0 ${isUser ? 'text-white' : 'text-[#ea580c]'}`}>
+                •
+              </span>
+              <span>{renderedParts}</span>
+            </div>
+          );
+        }
+
+        return <p key={lineIdx}>{renderedParts}</p>;
+      })}
+    </div>
+  );
+};
 
 interface EnquiryChatWidgetProps {
   onOpenListing?: (id: string) => void;
@@ -7,51 +66,75 @@ interface EnquiryChatWidgetProps {
 
 export const EnquiryChatWidget: React.FC<EnquiryChatWidgetProps> = () => {
   const [isOpen, setIsOpen] = useState(false);
-
-  // Chatbot state
-  const [chatMessages, setChatMessages] = useState<Array<{ sender: 'user' | 'bot'; text: string; time: string }>>([
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([
     {
       sender: 'bot',
       text: 'Hello! 👋 Welcome to our Heavy Equipment, Vehicles & Property Marketplace. How can I assist you today?',
-      time: 'Just now'
-    }
+      time: 'Just now',
+    },
   ]);
   const [inputMessage, setInputMessage] = useState('');
+  const [isTyping, setIsTyping] = useState(false);
+  // Tracks the conversation history for Gemini multi-turn context
+  const historyRef = useRef<ConversationTurn[]>([]);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const handleSendMessage = (e: React.FormEvent) => {
+  useEffect(() => {
+    if (isOpen) {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [chatMessages, isOpen]);
+
+  const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!inputMessage.trim()) return;
-
     const userText = inputMessage.trim();
+    if (!userText || isTyping) return;
+
     const currentTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
-    const newMessages = [
-      ...chatMessages,
-      { sender: 'user' as const, text: userText, time: currentTime }
-    ];
-    setChatMessages(newMessages);
+    // Append user message to UI
+    setChatMessages((prev) => [
+      ...prev,
+      { sender: 'user', text: userText, time: currentTime },
+    ]);
     setInputMessage('');
+    setIsTyping(true);
 
-    // Simulate smart automated chatbot response
-    setTimeout(() => {
-      let botResponse = "Thank you for reaching out! You can also chat directly with our sales team on WhatsApp for immediate help.";
-      const lower = userText.toLowerCase();
+    try {
+      // Send to backend → Gemini
+      const { reply } = await chatApi.send(userText, historyRef.current);
 
-      if (lower.includes('price') || lower.includes('cost') || lower.includes('quote')) {
-        botResponse = "For detailed pricing or custom volume quotes on heavy machinery and fleet vehicles, please tap the WhatsApp Support button or call our sales line directly at +233 24 123 4567.";
-      } else if (lower.includes('excavator') || lower.includes('machinery') || lower.includes('cat') || lower.includes('komatsu')) {
-        botResponse = "We have certified hydraulic excavators, bulldozers, and wheel loaders available for sale and rental in Greater Accra and Western region.";
-      } else if (lower.includes('inspect') || lower.includes('location') || lower.includes('viewing')) {
-        botResponse = "Physical inspection for heavy equipment and commercial properties can be arranged Monday to Saturday, 8:00 AM – 5:00 PM.";
-      } else if (lower.includes('contact') || lower.includes('phone') || lower.includes('call')) {
-        botResponse = "You can contact our support desk directly via Phone/WhatsApp: +233 24 123 4567.";
-      }
+      // Update conversation history for next turn
+      historyRef.current = [
+        ...historyRef.current,
+        { role: 'user', parts: [{ text: userText }] },
+        { role: 'model', parts: [{ text: reply }] },
+      ];
 
-      setChatMessages(prev => [
+      setChatMessages((prev) => [
         ...prev,
-        { sender: 'bot', text: botResponse, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }
+        {
+          sender: 'bot',
+          text: reply,
+          time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        },
       ]);
-    }, 800);
+    } catch {
+      setChatMessages((prev) => [
+        ...prev,
+        {
+          sender: 'bot',
+          text: "I'm temporarily unavailable. Please contact us on WhatsApp: +233 24 123 4567 for immediate help.",
+          time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        },
+      ]);
+    } finally {
+      setIsTyping(false);
+    }
+  };
+
+  const handleQuickAsk = (question: string) => {
+    setInputMessage(question);
   };
 
   return (
@@ -66,10 +149,10 @@ export const EnquiryChatWidget: React.FC<EnquiryChatWidgetProps> = () => {
                 <Bot className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="font-bold text-sm leading-snug">AI Assistant &amp; WhatsApp</h3>
+                <h3 className="font-bold text-sm leading-snug">Digital Assistant</h3>
                 <span className="text-[11px] text-emerald-400 flex items-center gap-1 font-medium">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                  Online Assistant
+                  24/7 Online Assistant
                 </span>
               </div>
             </div>
@@ -89,21 +172,17 @@ export const EnquiryChatWidget: React.FC<EnquiryChatWidgetProps> = () => {
               <span className="font-bold text-slate-500 uppercase text-[9px] shrink-0 pl-1">Quick Ask:</span>
               <button
                 type="button"
-                onClick={() => {
-                  setInputMessage("What is the price and inspection schedule for the Caterpillar 320 Excavator?");
-                }}
+                onClick={() => handleQuickAsk('What is the price and inspection schedule for the Caterpillar 320 Excavator?')}
                 className="bg-white hover:bg-slate-200 text-slate-700 px-2 py-1 rounded-md border border-slate-200 shrink-0 cursor-pointer font-medium"
               >
                 Excavator Price &amp; Inspection
               </button>
               <button
                 type="button"
-                onClick={() => {
-                  setInputMessage("Is the MAN Tipper Truck available for test drive in Kasoa?");
-                }}
+                onClick={() => handleQuickAsk('What properties do you have for sale in Accra under GHS 5 million?')}
                 className="bg-white hover:bg-slate-200 text-slate-700 px-2 py-1 rounded-md border border-slate-200 shrink-0 cursor-pointer font-medium"
               >
-                MAN Tipper Availability
+                Properties in Accra
               </button>
             </div>
 
@@ -121,14 +200,14 @@ export const EnquiryChatWidget: React.FC<EnquiryChatWidgetProps> = () => {
                         : 'bg-white text-slate-800 border border-slate-200 rounded-bl-none'
                     }`}
                   >
-                    <p className="leading-relaxed">{msg.text}</p>
-                    
+                    <FormattedText text={msg.text} isUser={msg.sender === 'user'} />
+
                     {msg.sender === 'bot' && idx > 0 && (
                       <div className="mt-2.5 pt-2 border-t border-slate-100 flex items-center justify-between gap-2">
-                        <span className="text-[10px] text-slate-400 font-medium">Need immediate assistance?</span>
+                        <span className="text-[10px] text-slate-400 font-medium">Need immediate help?</span>
                         <a
                           href={`https://wa.me/233241234567?text=${encodeURIComponent(
-                            `Hello, I am asking the AI Assistant: "${chatMessages[idx - 1]?.text || 'General Query'}"`
+                            `Hello, I asked the AI Assistant: "${chatMessages[idx - 1]?.text || 'General Query'}"`
                           )}`}
                           target="_blank"
                           rel="noopener noreferrer"
@@ -143,9 +222,21 @@ export const EnquiryChatWidget: React.FC<EnquiryChatWidgetProps> = () => {
                   <span className="text-[10px] text-slate-400 mt-0.5 px-1">{msg.time}</span>
                 </div>
               ))}
+
+              {/* Typing indicator */}
+              {isTyping && (
+                <div className="flex items-start">
+                  <div className="bg-white border border-slate-200 rounded-xl rounded-bl-none p-3 flex items-center gap-1.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-slate-400 animate-bounce" style={{ animationDelay: '0ms' }} />
+                    <span className="w-1.5 h-1.5 rounded-full bg-slate-400 animate-bounce" style={{ animationDelay: '150ms' }} />
+                    <span className="w-1.5 h-1.5 rounded-full bg-slate-400 animate-bounce" style={{ animationDelay: '300ms' }} />
+                  </div>
+                </div>
+              )}
+              <div ref={messagesEndRef} />
             </div>
 
-            {/* Chat Input & WhatsApp Quick Action Bar */}
+            {/* Chat Input */}
             <div className="p-2.5 bg-white border-t border-slate-200 space-y-2">
               <form onSubmit={handleSendMessage} className="flex gap-1.5">
                 <input
@@ -153,24 +244,17 @@ export const EnquiryChatWidget: React.FC<EnquiryChatWidgetProps> = () => {
                   placeholder="Ask AI about machinery, specs, prices..."
                   value={inputMessage}
                   onChange={(e) => setInputMessage(e.target.value)}
-                  className="flex-1 px-3 py-2 text-xs border border-slate-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-orange-500"
+                  disabled={isTyping}
+                  className="flex-1 px-3 py-2 text-xs border border-slate-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-orange-500 disabled:opacity-60"
                 />
                 <button
                   type="submit"
-                  className="bg-slate-900 hover:bg-[#f97316] text-white p-2 rounded-lg transition-colors cursor-pointer shrink-0"
+                  disabled={isTyping || !inputMessage.trim()}
+                  className="bg-slate-900 hover:bg-[#f97316] text-white p-2 rounded-lg transition-colors cursor-pointer shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <Send className="w-4 h-4" />
                 </button>
               </form>
-
-              <a
-                href="https://wa.me/233241234567?text=Hello%20AkwasiJob%20Team,%20I%20have%20an%20enquiry%20regarding%20an%20equipment/property%20listing."
-                target="_blank"
-                rel="noopener noreferrer"
-                className="block text-center text-[11px] font-bold text-emerald-700 hover:text-emerald-800 hover:underline py-0.5"
-              >
-                💬 Or send direct WhatsApp message (+233 24 123 4567)
-              </a>
             </div>
           </div>
         </div>
@@ -178,25 +262,23 @@ export const EnquiryChatWidget: React.FC<EnquiryChatWidgetProps> = () => {
 
       {/* Floating Hover Button */}
       <div className="relative group">
-        {/* Tooltip on hover */}
         {!isOpen && (
           <div className="absolute right-full mr-3 top-1/2 -translate-y-1/2 hidden group-hover:flex items-center gap-1.5 bg-slate-900 text-white text-xs font-semibold px-3 py-1.5 rounded-full shadow-lg whitespace-nowrap animate-in fade-in duration-150">
             <Sparkles className="w-3.5 h-3.5 text-orange-400" />
-            <span>AI Assistant &amp; WhatsApp</span>
+            <span>Digital Assistant</span>
           </div>
         )}
 
         <button
           onClick={() => setIsOpen(!isOpen)}
           className="relative bg-slate-900 hover:bg-[#f97316] text-white w-13 h-13 rounded-full shadow-2xl flex items-center justify-center border-2 border-white transition-all transform hover:scale-105 active:scale-95 cursor-pointer group"
-          aria-label="AI Assistant and WhatsApp"
+          aria-label="Digital Assistant"
         >
           {isOpen ? (
             <X className="w-6 h-6" />
           ) : (
             <>
               <MessageSquare className="w-6 h-6 transition-transform group-hover:rotate-6" />
-              {/* Pulsing indicator dot */}
               <span className="absolute top-0 right-0 w-3.5 h-3.5 bg-orange-500 border-2 border-white rounded-full animate-ping" />
               <span className="absolute top-0 right-0 w-3.5 h-3.5 bg-orange-500 border-2 border-white rounded-full" />
             </>

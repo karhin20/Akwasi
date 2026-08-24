@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Search,
   ArrowRight,
@@ -23,6 +23,22 @@ interface HomeScreenProps {
 
 type CategoryType = 'heavy_machinery' | 'cars_vehicles' | 'properties' | 'services';
 
+const HERO_SLIDES = [
+  '/excavator 1.jfif',
+  '/car 2.jpg',
+  '/house 2.webp',
+  '/excavator 2.jfif',
+  '/fumigation.jpg',
+  '/excavator 3.jfif',
+];
+
+const CATEGORY_SLIDE_MAP: Record<CategoryType, number> = {
+  heavy_machinery: 0,
+  cars_vehicles: 1,
+  properties: 2,
+  services: 4,
+};
+
 export const HomeScreen: React.FC<HomeScreenProps> = ({
   onNavigate,
   onSelectListing,
@@ -32,6 +48,22 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
   const [activeCategory, setActiveCategory] = useState<CategoryType>('heavy_machinery');
   const [searchKeyword, setSearchKeyword] = useState('');
   const [searchLocation, setSearchLocation] = useState('');
+  const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
+
+  // Automatic slideshow transition every 4.5 seconds
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentSlideIndex((prev) => (prev + 1) % HERO_SLIDES.length);
+    }, 4500);
+    return () => clearInterval(timer);
+  }, []);
+
+  const handleCategorySelect = (cat: CategoryType) => {
+    setActiveCategory(cat);
+    if (CATEGORY_SLIDE_MAP[cat] !== undefined) {
+      setCurrentSlideIndex(CATEGORY_SLIDE_MAP[cat]);
+    }
+  };
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -98,8 +130,26 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
 
   return (
     <div className="w-full flex flex-col flex-grow bg-white">
-      {/* Hero Section with multi-category search */}
-      <section className="bg-[#243142] text-white py-16 sm:py-20 px-4 sm:px-8 lg:px-12 relative overflow-hidden">
+      {/* Hero Section with animated cross-fade background slideshow */}
+      <section className="text-white py-16 sm:py-20 px-4 sm:px-8 lg:px-12 relative overflow-hidden bg-slate-950">
+        {/* Background Image Slides (Layered cross-fade) */}
+        {HERO_SLIDES.map((slide, idx) => (
+          <div
+            key={slide}
+            className={`absolute inset-0 bg-cover bg-center transition-opacity duration-1000 ease-in-out ${
+              idx === currentSlideIndex ? 'opacity-100 scale-105' : 'opacity-0 scale-100'
+            }`}
+            style={{
+              backgroundImage: `url('${slide}')`,
+              transitionProperty: 'opacity, transform',
+              transitionDuration: '1000ms',
+            }}
+          />
+        ))}
+
+        {/* Dark Gradient Overlay */}
+        <div className="absolute inset-0 bg-gradient-to-b from-slate-950/85 via-slate-900/80 to-slate-950/90 z-0" />
+
         <div className="max-w-[1280px] mx-auto flex flex-col items-center text-center relative z-10">
           <h1 className="font-heading text-4xl sm:text-5xl md:text-6xl font-extrabold text-white tracking-tight leading-[1.12] mb-6 max-w-4xl">
             Industrial Power. Prime<br />Real Estate. Unmatched<br />Deals.
@@ -116,7 +166,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
               <button
                 type="button"
                 id="hero-tab-machinery"
-                onClick={() => setActiveCategory('heavy_machinery')}
+                onClick={() => handleCategorySelect('heavy_machinery')}
                 className={`py-2 sm:py-0 sm:pb-2.5 font-sans text-xs sm:text-sm font-semibold transition-all cursor-pointer text-center sm:text-left rounded-lg sm:rounded-none ${
                   activeCategory === 'heavy_machinery'
                     ? 'bg-orange-50 text-[#ea580c] sm:bg-transparent sm:text-slate-900 sm:border-b-2 sm:border-[#f97316]'
@@ -129,7 +179,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
               <button
                 type="button"
                 id="hero-tab-property"
-                onClick={() => setActiveCategory('properties')}
+                onClick={() => handleCategorySelect('properties')}
                 className={`py-2 sm:py-0 sm:pb-2.5 font-sans text-xs sm:text-sm font-semibold transition-all cursor-pointer text-center sm:text-left rounded-lg sm:rounded-none ${
                   activeCategory === 'properties'
                     ? 'bg-orange-50 text-[#ea580c] sm:bg-transparent sm:text-slate-900 sm:border-b-2 sm:border-[#f97316]'
@@ -142,7 +192,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
               <button
                 type="button"
                 id="hero-tab-services"
-                onClick={() => setActiveCategory('services')}
+                onClick={() => handleCategorySelect('services')}
                 className={`py-2 sm:py-0 sm:pb-2.5 font-sans text-xs sm:text-sm font-semibold transition-all cursor-pointer text-center sm:text-left rounded-lg sm:rounded-none ${
                   activeCategory === 'services'
                     ? 'bg-orange-50 text-[#ea580c] sm:bg-transparent sm:text-slate-900 sm:border-b-2 sm:border-[#f97316]'
@@ -155,7 +205,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
               <button
                 type="button"
                 id="hero-tab-vehicles"
-                onClick={() => setActiveCategory('cars_vehicles')}
+                onClick={() => handleCategorySelect('cars_vehicles')}
                 className={`py-2 sm:py-0 sm:pb-2.5 font-sans text-xs sm:text-sm font-semibold transition-all cursor-pointer text-center sm:text-left rounded-lg sm:rounded-none ${
                   activeCategory === 'cars_vehicles'
                     ? 'bg-orange-50 text-[#ea580c] sm:bg-transparent sm:text-slate-900 sm:border-b-2 sm:border-[#f97316]'

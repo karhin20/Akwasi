@@ -1,6 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { ScreenType, ListingItem } from './types';
-import { INITIAL_LISTINGS } from './data/mockData';
 import { Header } from './components/Header';
 import { Footer } from './components/Footer';
 import { HomeScreen } from './screens/HomeScreen';
@@ -14,11 +13,13 @@ import { PostListingModal } from './components/PostListingModal';
 import { AccountModal } from './components/AccountModal';
 import { ServicesModal } from './components/ServicesModal';
 import { EnquiryChatWidget } from './components/EnquiryChatWidget';
+import { listings as listingsApi } from './lib/api';
 
 export function App() {
   const [currentScreen, setCurrentScreen] = useState<ScreenType>('home');
   const [previousScreen, setPreviousScreen] = useState<ScreenType>('home');
-  const [listings, setListings] = useState<ListingItem[]>(INITIAL_LISTINGS);
+  const [listings, setListings] = useState<ListingItem[]>([]);
+  const [listingsLoading, setListingsLoading] = useState(true);
   const [selectedListing, setSelectedListing] = useState<ListingItem | null>(null);
   const [isPostModalOpen, setIsPostModalOpen] = useState(false);
   const [isAccountModalOpen, setIsAccountModalOpen] = useState(false);
@@ -28,6 +29,23 @@ export function App() {
   const [searchQuery, setSearchQuery] = useState('');
   const [initialCategory, setInitialCategory] = useState<string>('all');
   const [userListings, setUserListings] = useState<ListingItem[]>([]);
+
+  // Fetch all listings from backend on mount
+  const fetchListings = useCallback(async () => {
+    try {
+      setListingsLoading(true);
+      const data = await listingsApi.getAll();
+      setListings(data as ListingItem[]);
+    } catch (err) {
+      console.error('Failed to load listings:', err);
+    } finally {
+      setListingsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchListings();
+  }, [fetchListings]);
 
   const handleAddListing = (newListing: ListingItem) => {
     setListings((prev) => [newListing, ...prev]);

@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
-import { X, Upload, CheckCircle, Tag, MapPin, DollarSign, Layers } from 'lucide-react';
+import React, { useState, useRef } from 'react';
+import { X, Upload, CheckCircle, Tag, ImageIcon, Loader2 } from 'lucide-react';
 import { ListingItem } from '../types';
+import { listings as listingsApi, media as mediaApi } from '../lib/api';
 
 interface PostListingModalProps {
   isOpen: boolean;
@@ -11,7 +12,7 @@ interface PostListingModalProps {
 export const PostListingModal: React.FC<PostListingModalProps> = ({
   isOpen,
   onClose,
-  onAddListing
+  onAddListing,
 }) => {
   const [category, setCategory] = useState<'cars_vehicles' | 'heavy_machinery' | 'properties'>('cars_vehicles');
   const [title, setTitle] = useState('');
@@ -21,63 +22,120 @@ export const PostListingModal: React.FC<PostListingModalProps> = ({
   const [location, setLocation] = useState('Accra');
   const [condition, setCondition] = useState('Excellent Condition');
   const [description, setDescription] = useState('');
-  const [imageUrl, setImageUrl] = useState('');
   const [submitted, setSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+
+  // Image upload state
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   if (!isOpen) return null;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setSelectedFile(file);
+    const reader = new FileReader();
+    reader.onloadend = () => setImagePreview(reader.result as string);
+    reader.readAsDataURL(file);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    const file = e.dataTransfer.files?.[0];
+    if (!file || !file.type.startsWith('image/')) return;
+    setSelectedFile(file);
+    const reader = new FileReader();
+    reader.onloadend = () => setImagePreview(reader.result as string);
+    reader.readAsDataURL(file);
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!title || !price) return;
+    setSubmitError(null);
+    setIsSubmitting(true);
 
-    const numPrice = parseFloat(price.replace(/[^0-9.]/g, '')) || 500000;
-    const defaultImg =
-      category === 'heavy_machinery'
-        ? 'https://lh3.googleusercontent.com/aida-public/AB6AXuDknMVfyClBf-vB-HWarpPpQLMLg5SPvNFl25AIrgnHmpjIvCX7IPiyLSS0CXMpgxGN360lJpWl73LpdepCDlPJsgmQ2NwnjTeZowPpYRDBo9xmM6zOV4P8hn9FY_qur27K3lTmkM20PfgPeUvTzss36RiXzLiRsb7Moezy1FU_xyIhxZqs1BnpRPOp8SViQYiGa21yX2ssCWzjdJZZiEEmJQWAP70cNkGjMlGoboWkwH7Nt8d2vZ2vhA'
-        : category === 'properties'
-        ? 'https://lh3.googleusercontent.com/aida-public/AB6AXuDRjNF4KCiTva_kuW6mL5F1fn7C7elx__FbX2mQkqEw3PWuv3s6lRZMRFa_Px51Clq09SSVMuiK9d5hU8FZ9_2bVgI4bOBaLTdX98yvkJdGi5-6j4ov02Wn7jdI98MqGSRLEYbCf3LONzmfo8xJnGnHtAOpOiRPaxqHPhDafbJNw4tqyYoJdxjpunf1I-KUCL3HOEEaXPBACs3CG2Rf_S7Xad6csldYb44ub-HH8TGNPbQtwH1Qj5Co9w'
-        : 'https://lh3.googleusercontent.com/aida-public/AB6AXuCmXWWbFXcsf0jPWFCpq-y26DsKHue0b36HGXfKv1clsCLFGmZdkv3HgIXrzEBwqcvvT9h-D8NimdTMoq7tVA9OT7B-WAr71SVoIUmw0q4Aaxgx_8BmQo1IMYPchw8HZo4c836dMzfT9OsxS9By6MEUVGmz4mtZnuRYYObCX0XEuRK48QPdQc5625iSAcs_yqqGzeqHfL5_95Rdi1s_a3YB9jAG6-LRpwM5oW_f3QfazUlymZzElylM7g';
+    try {
+      let imageUrl = '';
 
-    const newListing: ListingItem = {
-      id: `user-list-${Date.now()}`,
-      title,
-      category,
-      price: numPrice,
-      currency: 'GHS',
-      priceFormatted: `GHS ${numPrice.toLocaleString()}`,
-      image: imageUrl || defaultImg,
-      description: description || 'Verified high-quality asset in pristine condition ready for commercial use.',
-      location: `${location}, Ghana`,
-      city: location,
-      year: parseInt(year) || 2022,
-      make,
-      condition: condition as any,
-      featured: true,
-      specs: [
-        { label: 'Year', value: year, icon: 'calendar_month' },
-        { label: 'Location', value: location, icon: 'location_on' },
-        { label: 'Make', value: make, icon: 'build' },
-        { label: 'Verified', value: 'Instant Clear', icon: 'verified' }
-      ],
-      seller: {
-        name: 'Kelvin Arhin (You)',
-        phone: '+233 24 000 1122',
-        whatsapp: '+233 24 000 1122',
-        verified: true,
-        location: `${location}, Ghana`
+      // 1. Upload image to Cloudinary via backend if a file was selected
+      if (selectedFile) {
+        setIsUploading(true);
+        try {
+          const uploadResult = await mediaApi.upload(selectedFile, 'akwasi/listings');
+          imageUrl = uploadResult.url;
+        } finally {
+          setIsUploading(false);
+        }
       }
-    };
 
-    onAddListing(newListing);
-    setSubmitted(true);
-    setTimeout(() => {
-      setSubmitted(false);
-      onClose();
-      // Reset form
-      setTitle('');
-      setPrice('');
-      setDescription('');
-    }, 1500);
+      // 2. Fallback image if none uploaded
+      if (!imageUrl) {
+        imageUrl =
+          category === 'heavy_machinery'
+            ? 'https://images.unsplash.com/photo-1581094794329-c8112a89af12?auto=format&fit=crop&w=1200&q=80'
+            : category === 'properties'
+            ? 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80'
+            : 'https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?auto=format&fit=crop&w=1200&q=80';
+      }
+
+      const numPrice = parseFloat(price.replace(/[^0-9.]/g, '')) || 500000;
+
+      const payload: Record<string, unknown> = {
+        title,
+        category,
+        price: numPrice,
+        currency: 'GHS',
+        priceFormatted: `GHS ${numPrice.toLocaleString()}`,
+        image: imageUrl,
+        gallery: [imageUrl],
+        description: description || 'Verified high-quality asset in pristine condition ready for commercial use.',
+        location: `${location}, Ghana`,
+        city: location,
+        year: parseInt(year) || 2022,
+        make,
+        condition,
+        status: 'published',
+        featured: false,
+        specs: [
+          { label: 'Year', value: year, icon: 'calendar_month' },
+          { label: 'Location', value: location, icon: 'location_on' },
+          { label: 'Make', value: make, icon: 'build' },
+          { label: 'Verified', value: 'Instant Clear', icon: 'verified' },
+        ],
+        seller: {
+          name: 'AkwasiJob Marketplace',
+          phone: '+233 24 123 4567',
+          whatsapp: '+233 24 123 4567',
+          verified: true,
+          location: `${location}, Ghana`,
+        },
+      };
+
+      // 3. POST to backend → Supabase
+      const created = await listingsApi.create(payload);
+      onAddListing(created as ListingItem);
+      setSubmitted(true);
+
+      setTimeout(() => {
+        setSubmitted(false);
+        onClose();
+        // Reset form
+        setTitle('');
+        setPrice('');
+        setDescription('');
+        setSelectedFile(null);
+        setImagePreview(null);
+      }, 1500);
+    } catch (err) {
+      setSubmitError(err instanceof Error ? err.message : 'Failed to publish listing. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -116,39 +174,20 @@ export const PostListingModal: React.FC<PostListingModalProps> = ({
                 Listing Category
               </label>
               <div className="grid grid-cols-3 gap-2">
-                <button
-                  type="button"
-                  onClick={() => setCategory('cars_vehicles')}
-                  className={`py-2.5 px-3 rounded-lg text-xs font-bold border transition-colors cursor-pointer ${
-                    category === 'cars_vehicles'
-                      ? 'bg-blue-600 text-white border-blue-600 shadow-2xs'
-                      : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
-                  }`}
-                >
-                  Cars & Vehicles
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setCategory('heavy_machinery')}
-                  className={`py-2.5 px-3 rounded-lg text-xs font-bold border transition-colors cursor-pointer ${
-                    category === 'heavy_machinery'
-                      ? 'bg-blue-600 text-white border-blue-600 shadow-2xs'
-                      : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
-                  }`}
-                >
-                  Heavy Machinery
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setCategory('properties')}
-                  className={`py-2.5 px-3 rounded-lg text-xs font-bold border transition-colors cursor-pointer ${
-                    category === 'properties'
-                      ? 'bg-blue-600 text-white border-blue-600 shadow-2xs'
-                      : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
-                  }`}
-                >
-                  Properties
-                </button>
+                {(['cars_vehicles', 'heavy_machinery', 'properties'] as const).map((cat) => (
+                  <button
+                    key={cat}
+                    type="button"
+                    onClick={() => setCategory(cat)}
+                    className={`py-2.5 px-3 rounded-lg text-xs font-bold border transition-colors cursor-pointer ${
+                      category === cat
+                        ? 'bg-blue-600 text-white border-blue-600 shadow-2xs'
+                        : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
+                    }`}
+                  >
+                    {cat === 'cars_vehicles' ? 'Cars & Vehicles' : cat === 'heavy_machinery' ? 'Heavy Machinery' : 'Properties'}
+                  </button>
+                ))}
               </div>
             </div>
 
@@ -203,7 +242,7 @@ export const PostListingModal: React.FC<PostListingModalProps> = ({
               </div>
             </div>
 
-            {/* Make & Year */}
+            {/* Make & Year & Condition */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div>
                 <label className="block text-xs font-bold uppercase text-slate-500 mb-1">
@@ -219,9 +258,7 @@ export const PostListingModal: React.FC<PostListingModalProps> = ({
               </div>
 
               <div>
-                <label className="block text-xs font-bold uppercase text-slate-500 mb-1">
-                  Year
-                </label>
+                <label className="block text-xs font-bold uppercase text-slate-500 mb-1">Year</label>
                 <input
                   type="number"
                   placeholder="2022"
@@ -232,9 +269,7 @@ export const PostListingModal: React.FC<PostListingModalProps> = ({
               </div>
 
               <div>
-                <label className="block text-xs font-bold uppercase text-slate-500 mb-1">
-                  Condition
-                </label>
+                <label className="block text-xs font-bold uppercase text-slate-500 mb-1">Condition</label>
                 <select
                   value={condition}
                   onChange={(e) => setCondition(e.target.value)}
@@ -248,24 +283,61 @@ export const PostListingModal: React.FC<PostListingModalProps> = ({
               </div>
             </div>
 
-            {/* Image URL (Optional) */}
+            {/* Image Upload — Cloudinary */}
             <div>
               <label className="block text-xs font-bold uppercase text-slate-500 mb-1">
-                Image Link (Optional or Auto-assigned)
+                Listing Image <span className="text-slate-400 normal-case font-normal">(uploaded to Cloudinary)</span>
               </label>
-              <input
-                type="url"
-                placeholder="https://... (Leave blank for sample industrial photo)"
-                value={imageUrl}
-                onChange={(e) => setImageUrl(e.target.value)}
-                className="w-full bg-white border border-slate-200 rounded-lg p-2.5 text-sm text-slate-900 outline-none focus:border-blue-500 shadow-2xs"
-              />
+              <div
+                onDrop={handleDrop}
+                onDragOver={(e) => e.preventDefault()}
+                onClick={() => fileInputRef.current?.click()}
+                className={`relative w-full border-2 border-dashed rounded-lg p-4 cursor-pointer transition-colors text-center ${
+                  imagePreview
+                    ? 'border-blue-400 bg-blue-50'
+                    : 'border-slate-200 hover:border-blue-400 hover:bg-slate-50'
+                }`}
+              >
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileChange}
+                  className="hidden"
+                />
+                {imagePreview ? (
+                  <div className="flex items-center gap-3">
+                    <img
+                      src={imagePreview}
+                      alt="Preview"
+                      className="w-16 h-16 object-cover rounded-lg border border-slate-200 shrink-0"
+                    />
+                    <div className="text-left">
+                      <p className="text-xs font-semibold text-slate-700 line-clamp-1">{selectedFile?.name}</p>
+                      <p className="text-[10px] text-slate-400">
+                        {selectedFile ? `${(selectedFile.size / 1024).toFixed(0)} KB` : ''}
+                      </p>
+                      <p className="text-[10px] text-blue-600 font-semibold mt-0.5">Click to change image</p>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center gap-1.5 py-2">
+                    <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center">
+                      <ImageIcon className="w-5 h-5 text-slate-400" />
+                    </div>
+                    <p className="text-xs font-semibold text-slate-600">
+                      Drop image here or <span className="text-blue-600">browse</span>
+                    </p>
+                    <p className="text-[10px] text-slate-400">PNG, JPG, WEBP up to 15MB</p>
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Description */}
             <div>
               <label className="block text-xs font-bold uppercase text-slate-500 mb-1">
-                Detailed Specifications & Notes
+                Detailed Specifications &amp; Notes
               </label>
               <textarea
                 rows={3}
@@ -276,19 +348,38 @@ export const PostListingModal: React.FC<PostListingModalProps> = ({
               />
             </div>
 
+            {/* Error */}
+            {submitError && (
+              <div className="bg-red-50 border border-red-200 text-red-700 text-xs rounded-lg p-3">
+                {submitError}
+              </div>
+            )}
+
             <div className="pt-2 flex justify-end gap-3">
               <button
                 type="button"
                 onClick={onClose}
-                className="px-5 py-2.5 bg-slate-200 text-slate-800 font-semibold text-sm rounded-lg hover:bg-slate-300 transition-colors cursor-pointer"
+                disabled={isSubmitting}
+                className="px-5 py-2.5 bg-slate-200 text-slate-800 font-semibold text-sm rounded-lg hover:bg-slate-300 transition-colors cursor-pointer disabled:opacity-50"
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm rounded-lg shadow-sm transition-colors cursor-pointer"
+                disabled={isSubmitting}
+                className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm rounded-lg shadow-sm transition-colors cursor-pointer flex items-center gap-2 disabled:opacity-60"
               >
-                Publish Listing
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span>{isUploading ? 'Uploading Image...' : 'Publishing...'}</span>
+                  </>
+                ) : (
+                  <>
+                    <Upload className="w-4 h-4" />
+                    <span>Publish Listing</span>
+                  </>
+                )}
               </button>
             </div>
           </form>

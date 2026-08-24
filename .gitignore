@@ -6,3 +6,6 @@ coverage/
 *.log
 .env*
 !.env.example
+
+# Backend — never pushed to GitHub
+backend/
