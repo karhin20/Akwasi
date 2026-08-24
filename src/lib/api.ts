@@ -4,7 +4,9 @@
  * served from the same origin in production.
  */
 
-const BASE = '/api';
+const BASE = import.meta.env.API_URL
+  ? `${import.meta.env.API_URL.replace(/\/$/, '')}/api`
+  : (import.meta.env.PROD ? 'https://kwasib-two.vercel.app/api' : '/api');
 
 // ─── Auth token helpers ───────────────────────────────────────────────────────
 const TOKEN_KEY = 'akwasi_admin_token';
