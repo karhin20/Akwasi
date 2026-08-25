@@ -55,8 +55,8 @@ export const PostListingModal: React.FC<PostListingModalProps> = ({
   const [pricePeriod, setPricePeriod] = useState('');
 
   // Image upload state
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -74,22 +74,41 @@ export const PostListingModal: React.FC<PostListingModalProps> = ({
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setSelectedFile(file);
-    const reader = new FileReader();
-    reader.onloadend = () => setImagePreview(reader.result as string);
-    reader.readAsDataURL(file);
+    if (!e.target.files) return;
+    const files = Array.from(e.target.files);
+    if (files.length === 0) return;
+
+    setSelectedFiles((prev) => [...prev, ...files]);
+
+    files.forEach((file) => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreviews((prev) => [...prev, reader.result as string]);
+      };
+      reader.readAsDataURL(file);
+    });
   };
 
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
-    const file = e.dataTransfer.files?.[0];
-    if (!file || !file.type.startsWith('image/')) return;
-    setSelectedFile(file);
-    const reader = new FileReader();
-    reader.onloadend = () => setImagePreview(reader.result as string);
-    reader.readAsDataURL(file);
+    const files = Array.from(e.dataTransfer.files || []).filter(file => file.type.startsWith('image/'));
+    if (files.length === 0) return;
+
+    setSelectedFiles((prev) => [...prev, ...files]);
+
+    files.forEach((file) => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreviews((prev) => [...prev, reader.result as string]);
+      };
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const handleRemoveSelectedFile = (idx: number, e: React.MouseEvent) => {
+    e.stopPropagation(); // prevent triggering input click
+    setSelectedFiles((prev) => prev.filter((_, i) => i !== idx));
+    setImagePreviews((prev) => prev.filter((_, i) => i !== idx));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -99,25 +118,30 @@ export const PostListingModal: React.FC<PostListingModalProps> = ({
     setIsSubmitting(true);
 
     try {
-      let imageUrl = '';
+      let uploadedUrls: string[] = [];
 
-      if (selectedFile) {
+      if (selectedFiles.length > 0) {
         setIsUploading(true);
         try {
-          const uploadResult = await mediaApi.upload(selectedFile, 'akwasi/listings');
-          imageUrl = uploadResult.url;
+          const uploadPromises = selectedFiles.map((file) => mediaApi.upload(file, 'akwasi/listings'));
+          const results = await Promise.all(uploadPromises);
+          uploadedUrls = results.map((res) => res.url).filter(Boolean);
         } finally {
           setIsUploading(false);
         }
       }
 
-      if (!imageUrl) {
-        imageUrl =
+      let mainImage = uploadedUrls[0] || '';
+      let gallery = uploadedUrls;
+
+      if (!mainImage) {
+        mainImage =
           category === 'heavy_machinery'
             ? 'https://images.unsplash.com/photo-1581094794329-c8112a89af12?auto=format&fit=crop&w=1200&q=80'
             : category === 'properties'
             ? 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80'
             : 'https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?auto=format&fit=crop&w=1200&q=80';
+        gallery = [mainImage];
       }
 
       const numPrice = parseFloat(price.replace(/[^0-9.]/g, '')) || 500000;
@@ -130,8 +154,8 @@ export const PostListingModal: React.FC<PostListingModalProps> = ({
         price: numPrice,
         currency: 'GHS',
         priceFormatted: `GHS ${numPrice.toLocaleString()}`,
-        image: imageUrl,
-        gallery: [imageUrl],
+        image: mainImage,
+        gallery,
         description: description || 'Verified high-quality asset in pristine condition ready for commercial use.',
         location: `${location}, Ghana`,
         city: location,
@@ -207,7 +231,7 @@ export const PostListingModal: React.FC<PostListingModalProps> = ({
         setSubmitted(false);
         onClose();
         setTitle(''); setPrice(''); setDescription('');
-        setSelectedFile(null); setImagePreview(null);
+        setSelectedFiles([]); setImagePreviews([]);
         handleCategoryChange('cars_vehicles');
       }, 1500);
     } catch (err) {
@@ -539,52 +563,56 @@ export const PostListingModal: React.FC<PostListingModalProps> = ({
             {/* Image Upload — Cloudinary */}
             <div>
               <label className={labelClass}>
-                Listing Image <span className="text-slate-400 normal-case font-normal">(uploaded to Cloudinary)</span>
+                Listing Images <span className="text-slate-400 normal-case font-normal">(select one or more, uploaded to Cloudinary)</span>
               </label>
               <div
                 onDrop={handleDrop}
                 onDragOver={(e) => e.preventDefault()}
                 onClick={() => fileInputRef.current?.click()}
-                className={`relative w-full border-2 border-dashed rounded-lg p-4 cursor-pointer transition-colors text-center ${
-                  imagePreview
-                    ? 'border-blue-400 bg-blue-50'
-                    : 'border-slate-200 hover:border-blue-400 hover:bg-slate-50'
-                }`}
+                className="relative w-full border-2 border-dashed border-slate-200 hover:border-blue-400 hover:bg-slate-50 rounded-lg p-5 cursor-pointer transition-colors text-center"
               >
                 <input
                   ref={fileInputRef}
                   type="file"
                   accept="image/*"
+                  multiple
                   onChange={handleFileChange}
                   className="hidden"
                 />
-                {imagePreview ? (
-                  <div className="flex items-center gap-3">
-                    <img
-                      src={imagePreview}
-                      alt="Preview"
-                      className="w-16 h-16 object-cover rounded-lg border border-slate-200 shrink-0"
-                    />
-                    <div className="text-left">
-                      <p className="text-xs font-semibold text-slate-700 line-clamp-1">{selectedFile?.name}</p>
-                      <p className="text-[10px] text-slate-400">
-                        {selectedFile ? `${(selectedFile.size / 1024).toFixed(0)} KB` : ''}
-                      </p>
-                      <p className="text-[10px] text-blue-600 font-semibold mt-0.5">Click to change image</p>
-                    </div>
+                <div className="flex flex-col items-center gap-1.5 py-1">
+                  <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center">
+                    <ImageIcon className="w-5 h-5 text-slate-400" />
                   </div>
-                ) : (
-                  <div className="flex flex-col items-center gap-1.5 py-2">
-                    <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center">
-                      <ImageIcon className="w-5 h-5 text-slate-400" />
-                    </div>
-                    <p className="text-xs font-semibold text-slate-600">
-                      Drop image here or <span className="text-blue-600">browse</span>
-                    </p>
-                    <p className="text-[10px] text-slate-400">PNG, JPG, WEBP up to 15MB</p>
-                  </div>
-                )}
+                  <p className="text-xs font-semibold text-slate-600">
+                    Drop images here or <span className="text-blue-600">browse</span>
+                  </p>
+                  <p className="text-[10px] text-slate-400">PNG, JPG, WEBP (Multiple allowed)</p>
+                </div>
               </div>
+
+              {/* Selected Previews Grid */}
+              {imagePreviews.length > 0 && (
+                <div className="grid grid-cols-4 sm:grid-cols-5 gap-3 mt-3 p-3 bg-slate-50 border border-slate-200 rounded-xl">
+                  {imagePreviews.map((preview, idx) => (
+                    <div key={idx} className="relative group rounded-lg overflow-hidden border border-slate-200 bg-white aspect-square shadow-2xs">
+                      <img src={preview} alt={`Upload preview ${idx + 1}`} className="w-full h-full object-cover" />
+                      {idx === 0 && (
+                        <span className="absolute bottom-1 left-1 bg-blue-600 text-white text-[8px] font-black px-1.5 py-0.5 rounded shadow-xs">
+                          COVER
+                        </span>
+                      )}
+                      <button
+                        type="button"
+                        onClick={(e) => handleRemoveSelectedFile(idx, e)}
+                        className="absolute top-1 right-1 bg-red-600 hover:bg-red-700 text-white p-1 rounded-full shadow-md transition-colors cursor-pointer"
+                        title="Remove from upload queue"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* Description */}

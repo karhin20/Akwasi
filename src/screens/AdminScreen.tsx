@@ -248,26 +248,29 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files || e.target.files.length === 0 || !editingListing) return;
-    const file = e.target.files[0];
+    const files = Array.from(e.target.files);
     setIsUploadingImage(true);
 
     try {
-      const res = await mediaApi.upload(file, 'akwasi/listings');
-      if (res.url) {
+      const uploadPromises = files.map((file) => mediaApi.upload(file, 'akwasi/listings'));
+      const results = await Promise.all(uploadPromises);
+      const urls = results.map((res) => res.url).filter(Boolean);
+
+      if (urls.length > 0) {
         setEditingListing((prev) => {
           if (!prev) return null;
           const currentGallery = prev.gallery || [];
           return {
             ...prev,
-            gallery: [...currentGallery, res.url],
-            image: prev.image ? prev.image : res.url, // set main image if empty
+            gallery: [...currentGallery, ...urls],
+            image: prev.image ? prev.image : urls[0], // set main image if empty
           };
         });
-        showToast('Image uploaded successfully to Cloudinary');
+        showToast(`${urls.length} images uploaded successfully to Cloudinary`);
       }
     } catch (err) {
-      console.error('Failed to upload image:', err);
-      showToast('Failed to upload image');
+      console.error('Failed to upload images:', err);
+      showToast('Failed to upload one or more images');
     } finally {
       setIsUploadingImage(false);
       e.target.value = ''; // reset file input
@@ -1125,7 +1128,7 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
                   <label className="bg-slate-900 hover:bg-slate-800 text-white font-bold text-[11px] px-3 py-1.5 rounded-lg transition-colors cursor-pointer flex items-center gap-1">
                     {isUploadingImage ? <Loader2 className="w-3.5 h-3.5 animate-spin text-orange-400" /> : <Plus className="w-3.5 h-3.5 text-white" />}
                     <span>Upload New Photo</span>
-                    <input type="file" accept="image/*" onChange={handleImageUpload} disabled={isUploadingImage} className="hidden" />
+                    <input type="file" accept="image/*" multiple onChange={handleImageUpload} disabled={isUploadingImage} className="hidden" />
                   </label>
                 </div>
 
