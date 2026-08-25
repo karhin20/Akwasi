@@ -293,6 +293,39 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
     });
   };
 
+  const handleSetCoverImage = (imgUrl: string) => {
+    if (!editingListing) return;
+    setEditingListing((prev) => {
+      if (!prev) return null;
+      return {
+        ...prev,
+        image: imgUrl,
+      };
+    });
+    showToast('Cover image updated');
+  };
+
+  const handleMoveImage = (idx: number, direction: 'left' | 'right') => {
+    if (!editingListing || !editingListing.gallery) return;
+    const gallery = [...editingListing.gallery];
+    const targetIdx = direction === 'left' ? idx - 1 : idx + 1;
+    if (targetIdx < 0 || targetIdx >= gallery.length) return;
+
+    // Swap
+    const temp = gallery[idx];
+    gallery[idx] = gallery[targetIdx];
+    gallery[targetIdx] = temp;
+
+    setEditingListing((prev) => {
+      if (!prev) return null;
+      return {
+        ...prev,
+        gallery,
+      };
+    });
+  };
+
+
   const handleSaveEdit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingListing) return;
@@ -1100,42 +1133,68 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
                   Deleting a picture here marks it to be permanently removed from Cloudinary when you save changes.
                 </p>
 
-                <div className="grid grid-cols-3 sm:grid-cols-4 gap-3 pt-1">
-                  {/* Main Image */}
-                  {editingListing.image && (
-                    <div className="relative group rounded-xl overflow-hidden border-2 border-orange-500 bg-white aspect-square shadow-xs">
-                      <img src={editingListing.image} alt="Main" className="w-full h-full object-cover" />
-                      <span className="absolute top-1 left-1 bg-orange-500 text-white text-[9px] font-extrabold px-1.5 py-0.5 rounded">
-                        MAIN
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveImage(editingListing.image)}
-                        className="absolute top-1 right-1 bg-red-600 hover:bg-red-700 text-white p-1 rounded-full shadow-md transition-all cursor-pointer opacity-90 hover:scale-110"
-                        title="Remove Image"
-                      >
-                        <X className="w-3 h-3" />
-                      </button>
-                    </div>
-                  )}
-
-                  {/* Gallery Images */}
-                  {editingListing.gallery &&
-                    editingListing.gallery
-                      .filter((url) => url !== editingListing.image)
-                      .map((url, idx) => (
-                        <div key={idx} className="relative group rounded-xl overflow-hidden border border-slate-200 bg-white aspect-square shadow-xs">
-                          <img src={url} alt={`Gallery ${idx}`} className="w-full h-full object-cover" />
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 pt-1">
+                  {(editingListing.gallery && editingListing.gallery.length > 0
+                    ? editingListing.gallery
+                    : (editingListing.image ? [editingListing.image] : [])
+                  ).map((url, idx, arr) => {
+                    const isCover = url === editingListing.image;
+                    return (
+                      <div key={idx} className={`relative group rounded-xl overflow-hidden bg-white aspect-square shadow-xs flex flex-col border-2 ${isCover ? 'border-orange-500' : 'border-slate-200'}`}>
+                        <img src={url} alt={`Asset ${idx + 1}`} className="w-full h-full object-cover" />
+                        
+                        {/* Cover status / Make cover action */}
+                        {isCover ? (
+                          <span className="absolute top-1.5 left-1.5 bg-orange-500 text-white text-[9px] font-black px-1.5 py-0.5 rounded shadow-xs">
+                            COVER
+                          </span>
+                        ) : (
                           <button
                             type="button"
-                            onClick={() => handleRemoveImage(url)}
-                            className="absolute top-1 right-1 bg-red-600 hover:bg-red-700 text-white p-1 rounded-full shadow-md transition-all cursor-pointer opacity-90 hover:scale-110"
-                            title="Remove Image"
+                            onClick={() => handleSetCoverImage(url)}
+                            className="absolute top-1.5 left-1.5 bg-slate-900/85 hover:bg-orange-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded transition-all opacity-0 group-hover:opacity-100 flex items-center gap-1 shadow-xs cursor-pointer"
+                            title="Set as Cover Image"
                           >
-                            <X className="w-3 h-3" />
+                            <Star className="w-2.5 h-2.5 fill-white text-white" />
+                            <span>Make Cover</span>
+                          </button>
+                        )}
+
+                        {/* Delete Image Action */}
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveImage(url)}
+                          className="absolute top-1.5 right-1.5 bg-red-600 hover:bg-red-700 text-white p-1 rounded-full shadow-md transition-all cursor-pointer opacity-90 group-hover:opacity-100 hover:scale-110"
+                          title="Remove Image"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+
+                        {/* Reordering Controls Overlay */}
+                        <div className="absolute bottom-0 inset-x-0 bg-slate-950/75 p-1.5 flex items-center justify-between opacity-0 group-hover:opacity-100 transition-opacity">
+                          <button
+                            type="button"
+                            disabled={idx === 0}
+                            onClick={() => handleMoveImage(idx, 'left')}
+                            className="p-1 hover:bg-slate-800 rounded text-slate-300 hover:text-white disabled:opacity-30 disabled:hover:bg-transparent cursor-pointer"
+                            title="Move Left"
+                          >
+                            <ArrowLeft className="w-3.5 h-3.5" />
+                          </button>
+                          <span className="text-[10px] text-slate-400 font-bold">#{idx + 1}</span>
+                          <button
+                            type="button"
+                            disabled={idx === arr.length - 1}
+                            onClick={() => handleMoveImage(idx, 'right')}
+                            className="p-1 hover:bg-slate-800 rounded text-slate-300 hover:text-white disabled:opacity-30 disabled:hover:bg-transparent cursor-pointer"
+                            title="Move Right"
+                          >
+                            <ChevronRight className="w-3.5 h-3.5" />
                           </button>
                         </div>
-                      ))}
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
 
