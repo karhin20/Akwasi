@@ -9,6 +9,9 @@ interface PostListingModalProps {
   onAddListing: (listing: ListingItem) => void;
 }
 
+const inputClass = 'w-full bg-white border border-slate-200 rounded-lg p-2.5 text-sm text-slate-900 outline-none focus:border-blue-500 shadow-2xs';
+const labelClass = 'block text-xs font-bold uppercase text-slate-500 mb-1';
+
 export const PostListingModal: React.FC<PostListingModalProps> = ({
   isOpen,
   onClose,
@@ -17,14 +20,39 @@ export const PostListingModal: React.FC<PostListingModalProps> = ({
   const [category, setCategory] = useState<'cars_vehicles' | 'heavy_machinery' | 'properties'>('cars_vehicles');
   const [title, setTitle] = useState('');
   const [price, setPrice] = useState('');
-  const [make, setMake] = useState('Toyota');
-  const [year, setYear] = useState('2022');
   const [location, setLocation] = useState('Accra');
   const [condition, setCondition] = useState('Excellent Condition');
   const [description, setDescription] = useState('');
   const [submitted, setSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+
+  // Shared vehicle / machinery fields
+  const [make, setMake] = useState('');
+  const [model, setModel] = useState('');
+  const [year, setYear] = useState('');
+  const [subCategory, setSubCategory] = useState('');
+
+  // Cars & Vehicles specific
+  const [mileage, setMileage] = useState('');
+  const [bodyType, setBodyType] = useState('');
+  const [fuelType, setFuelType] = useState('Diesel');
+  const [transmission, setTransmission] = useState('Automatic');
+
+  // Heavy Machinery specific
+  const [hours, setHours] = useState('');
+  const [tonnage, setTonnage] = useState('');
+  const [weight, setWeight] = useState('');
+
+  // Properties specific
+  const [propertyType, setPropertyType] = useState('Apartment');
+  const [transactionType, setTransactionType] = useState('For Sale');
+  const [beds, setBeds] = useState('');
+  const [baths, setBaths] = useState('');
+  const [sqm, setSqm] = useState('');
+  const [floors, setFloors] = useState('');
+  const [parking, setParking] = useState('');
+  const [pricePeriod, setPricePeriod] = useState('');
 
   // Image upload state
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -33,6 +61,17 @@ export const PostListingModal: React.FC<PostListingModalProps> = ({
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   if (!isOpen) return null;
+
+  const handleCategoryChange = (cat: typeof category) => {
+    setCategory(cat);
+    // Reset category-specific fields
+    setMake(''); setModel(''); setYear(''); setSubCategory('');
+    setMileage(''); setBodyType(''); setFuelType('Diesel'); setTransmission('Automatic');
+    setHours(''); setTonnage(''); setWeight('');
+    setPropertyType('Apartment'); setTransactionType('For Sale');
+    setBeds(''); setBaths(''); setSqm(''); setFloors(''); setParking(''); setPricePeriod('');
+    setCondition('Excellent Condition');
+  };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -62,7 +101,6 @@ export const PostListingModal: React.FC<PostListingModalProps> = ({
     try {
       let imageUrl = '';
 
-      // 1. Upload image to Cloudinary via backend if a file was selected
       if (selectedFile) {
         setIsUploading(true);
         try {
@@ -73,7 +111,6 @@ export const PostListingModal: React.FC<PostListingModalProps> = ({
         }
       }
 
-      // 2. Fallback image if none uploaded
       if (!imageUrl) {
         imageUrl =
           category === 'heavy_machinery'
@@ -85,9 +122,11 @@ export const PostListingModal: React.FC<PostListingModalProps> = ({
 
       const numPrice = parseFloat(price.replace(/[^0-9.]/g, '')) || 500000;
 
+      // Build base payload
       const payload: Record<string, unknown> = {
         title,
         category,
+        subCategory,
         price: numPrice,
         currency: 'GHS',
         priceFormatted: `GHS ${numPrice.toLocaleString()}`,
@@ -96,17 +135,9 @@ export const PostListingModal: React.FC<PostListingModalProps> = ({
         description: description || 'Verified high-quality asset in pristine condition ready for commercial use.',
         location: `${location}, Ghana`,
         city: location,
-        year: parseInt(year) || 2022,
-        make,
         condition,
         status: 'published',
         featured: false,
-        specs: [
-          { label: 'Year', value: year, icon: 'calendar_month' },
-          { label: 'Location', value: location, icon: 'location_on' },
-          { label: 'Make', value: make, icon: 'build' },
-          { label: 'Verified', value: 'Instant Clear', icon: 'verified' },
-        ],
         seller: {
           name: 'AkwasiJob Marketplace',
           phone: '+233 24 123 4567',
@@ -116,7 +147,58 @@ export const PostListingModal: React.FC<PostListingModalProps> = ({
         },
       };
 
-      // 3. POST to backend → Supabase
+      // Add category-specific fields
+      if (category === 'cars_vehicles') {
+        Object.assign(payload, {
+          make,
+          model,
+          year: parseInt(year) || undefined,
+          mileage,
+          bodyType,
+          fuelType,
+          transmission,
+          specs: [
+            { label: 'Year', value: year || 'N/A', icon: 'calendar_month' },
+            { label: 'Mileage', value: mileage || 'N/A', icon: 'speed' },
+            { label: 'Fuel', value: fuelType, icon: 'local_gas_station' },
+            { label: 'Transmission', value: transmission, icon: 'settings' },
+          ],
+        });
+      } else if (category === 'heavy_machinery') {
+        Object.assign(payload, {
+          make,
+          model,
+          year: parseInt(year) || undefined,
+          hours: parseInt(hours) || undefined,
+          tonnage,
+          weight,
+          fuelType,
+          specs: [
+            { label: 'Year', value: year || 'N/A', icon: 'calendar_month' },
+            { label: 'Hours', value: hours ? `${hours} hrs` : 'N/A', icon: 'schedule' },
+            { label: 'Tonnage', value: tonnage || 'N/A', icon: 'fitness_center' },
+            { label: 'Fuel', value: fuelType, icon: 'local_gas_station' },
+          ],
+        });
+      } else if (category === 'properties') {
+        Object.assign(payload, {
+          propertyType,
+          transactionType,
+          beds: parseInt(beds) || undefined,
+          baths: parseInt(baths) || undefined,
+          sqm: parseInt(sqm) || undefined,
+          floors: parseInt(floors) || undefined,
+          parking: parking || undefined,
+          pricePeriod: transactionType === 'For Rent' ? (pricePeriod || '/ month') : undefined,
+          specs: [
+            { label: 'Type', value: propertyType, icon: 'home' },
+            { label: 'Beds', value: beds || 'N/A', icon: 'bed' },
+            { label: 'Baths', value: baths || 'N/A', icon: 'bathtub' },
+            { label: 'Size', value: sqm ? `${sqm} sqm` : 'N/A', icon: 'square_foot' },
+          ],
+        });
+      }
+
       const created = await listingsApi.create(payload);
       onAddListing(created as ListingItem);
       setSubmitted(true);
@@ -124,12 +206,9 @@ export const PostListingModal: React.FC<PostListingModalProps> = ({
       setTimeout(() => {
         setSubmitted(false);
         onClose();
-        // Reset form
-        setTitle('');
-        setPrice('');
-        setDescription('');
-        setSelectedFile(null);
-        setImagePreview(null);
+        setTitle(''); setPrice(''); setDescription('');
+        setSelectedFile(null); setImagePreview(null);
+        handleCategoryChange('cars_vehicles');
       }, 1500);
     } catch (err) {
       setSubmitError(err instanceof Error ? err.message : 'Failed to publish listing. Please try again.');
@@ -138,10 +217,205 @@ export const PostListingModal: React.FC<PostListingModalProps> = ({
     }
   };
 
+  // ─── Category-specific field renderers ───────────────────────────────────────
+
+  const renderVehicleFields = () => (
+    <div className="space-y-4 bg-blue-50/50 border border-blue-100 rounded-xl p-4">
+      <h4 className="text-xs font-bold uppercase text-blue-700 flex items-center gap-1.5">
+        <span className="w-1.5 h-1.5 rounded-full bg-blue-500" />
+        Vehicle Specifications
+      </h4>
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <div>
+          <label className={labelClass}>Make / Manufacturer</label>
+          <input type="text" placeholder="e.g. Toyota, Ford" value={make} onChange={(e) => setMake(e.target.value)} className={inputClass} />
+        </div>
+        <div>
+          <label className={labelClass}>Model</label>
+          <input type="text" placeholder="e.g. Hilux, Land Cruiser" value={model} onChange={(e) => setModel(e.target.value)} className={inputClass} />
+        </div>
+        <div>
+          <label className={labelClass}>Year</label>
+          <input type="number" placeholder="2023" value={year} onChange={(e) => setYear(e.target.value)} className={inputClass} />
+        </div>
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div>
+          <label className={labelClass}>Mileage</label>
+          <input type="text" placeholder="e.g. 45,000 km" value={mileage} onChange={(e) => setMileage(e.target.value)} className={inputClass} />
+        </div>
+        <div>
+          <label className={labelClass}>Body Type</label>
+          <select value={bodyType} onChange={(e) => setBodyType(e.target.value)} className={inputClass}>
+            <option value="">Select body type</option>
+            <option value="SUV">SUV</option>
+            <option value="Sedan">Sedan</option>
+            <option value="Pickup">Pickup</option>
+            <option value="Commercial Truck">Commercial Truck</option>
+            <option value="Heavy Equipment">Heavy Equipment</option>
+            <option value="Tractor Head">Tractor Head</option>
+          </select>
+        </div>
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <div>
+          <label className={labelClass}>Fuel Type</label>
+          <select value={fuelType} onChange={(e) => setFuelType(e.target.value)} className={inputClass}>
+            <option value="Diesel">Diesel</option>
+            <option value="Petrol">Petrol</option>
+            <option value="Electric/Hybrid">Electric / Hybrid</option>
+          </select>
+        </div>
+        <div>
+          <label className={labelClass}>Transmission</label>
+          <select value={transmission} onChange={(e) => setTransmission(e.target.value)} className={inputClass}>
+            <option value="Automatic">Automatic</option>
+            <option value="Manual">Manual</option>
+          </select>
+        </div>
+        <div>
+          <label className={labelClass}>Condition</label>
+          <select value={condition} onChange={(e) => setCondition(e.target.value)} className={inputClass}>
+            <option value="Brand New">Brand New</option>
+            <option value="Excellent Condition">Excellent Condition</option>
+            <option value="Dealer Certified">Dealer Certified</option>
+            <option value="Used">Used</option>
+          </select>
+        </div>
+      </div>
+    </div>
+  );
+
+  const renderMachineryFields = () => (
+    <div className="space-y-4 bg-amber-50/50 border border-amber-100 rounded-xl p-4">
+      <h4 className="text-xs font-bold uppercase text-amber-700 flex items-center gap-1.5">
+        <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+        Machinery Specifications
+      </h4>
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <div>
+          <label className={labelClass}>Make / Manufacturer</label>
+          <input type="text" placeholder="e.g. Caterpillar, Komatsu" value={make} onChange={(e) => setMake(e.target.value)} className={inputClass} />
+        </div>
+        <div>
+          <label className={labelClass}>Model</label>
+          <input type="text" placeholder="e.g. 320 GC, PC200" value={model} onChange={(e) => setModel(e.target.value)} className={inputClass} />
+        </div>
+        <div>
+          <label className={labelClass}>Year</label>
+          <input type="number" placeholder="2021" value={year} onChange={(e) => setYear(e.target.value)} className={inputClass} />
+        </div>
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <div>
+          <label className={labelClass}>Operating Hours</label>
+          <input type="number" placeholder="e.g. 3500" value={hours} onChange={(e) => setHours(e.target.value)} className={inputClass} />
+        </div>
+        <div>
+          <label className={labelClass}>Tonnage</label>
+          <input type="text" placeholder="e.g. 20 Ton" value={tonnage} onChange={(e) => setTonnage(e.target.value)} className={inputClass} />
+        </div>
+        <div>
+          <label className={labelClass}>Weight</label>
+          <input type="text" placeholder="e.g. 22,000 kg" value={weight} onChange={(e) => setWeight(e.target.value)} className={inputClass} />
+        </div>
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div>
+          <label className={labelClass}>Fuel Type</label>
+          <select value={fuelType} onChange={(e) => setFuelType(e.target.value)} className={inputClass}>
+            <option value="Diesel">Diesel</option>
+            <option value="Petrol">Petrol</option>
+            <option value="Electric/Hybrid">Electric / Hybrid</option>
+          </select>
+        </div>
+        <div>
+          <label className={labelClass}>Condition</label>
+          <select value={condition} onChange={(e) => setCondition(e.target.value)} className={inputClass}>
+            <option value="Brand New">Brand New</option>
+            <option value="Excellent Condition">Excellent Condition</option>
+            <option value="Dealer Certified">Dealer Certified</option>
+            <option value="Used">Used</option>
+          </select>
+        </div>
+      </div>
+    </div>
+  );
+
+  const renderPropertyFields = () => (
+    <div className="space-y-4 bg-emerald-50/50 border border-emerald-100 rounded-xl p-4">
+      <h4 className="text-xs font-bold uppercase text-emerald-700 flex items-center gap-1.5">
+        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+        Property Details
+      </h4>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div>
+          <label className={labelClass}>Property Type</label>
+          <select value={propertyType} onChange={(e) => setPropertyType(e.target.value)} className={inputClass}>
+            <option value="Apartment">Apartment</option>
+            <option value="House / Villa">House / Villa</option>
+            <option value="Commercial">Commercial</option>
+            <option value="Land">Land</option>
+            <option value="Townhouse">Townhouse</option>
+          </select>
+        </div>
+        <div>
+          <label className={labelClass}>Transaction Type</label>
+          <select value={transactionType} onChange={(e) => setTransactionType(e.target.value)} className={inputClass}>
+            <option value="For Sale">For Sale</option>
+            <option value="For Rent">For Rent</option>
+          </select>
+        </div>
+      </div>
+      {transactionType === 'For Rent' && (
+        <div>
+          <label className={labelClass}>Price Period</label>
+          <select value={pricePeriod} onChange={(e) => setPricePeriod(e.target.value)} className={inputClass}>
+            <option value="/ month">Per Month</option>
+            <option value="/ year">Per Year</option>
+            <option value="/ week">Per Week</option>
+          </select>
+        </div>
+      )}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div>
+          <label className={labelClass}>Bedrooms</label>
+          <input type="number" placeholder="3" value={beds} onChange={(e) => setBeds(e.target.value)} className={inputClass} />
+        </div>
+        <div>
+          <label className={labelClass}>Bathrooms</label>
+          <input type="number" placeholder="2" value={baths} onChange={(e) => setBaths(e.target.value)} className={inputClass} />
+        </div>
+        <div>
+          <label className={labelClass}>Size (sqm)</label>
+          <input type="number" placeholder="150" value={sqm} onChange={(e) => setSqm(e.target.value)} className={inputClass} />
+        </div>
+        <div>
+          <label className={labelClass}>Floors</label>
+          <input type="number" placeholder="2" value={floors} onChange={(e) => setFloors(e.target.value)} className={inputClass} />
+        </div>
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div>
+          <label className={labelClass}>Parking</label>
+          <input type="text" placeholder="e.g. 2 covered spaces" value={parking} onChange={(e) => setParking(e.target.value)} className={inputClass} />
+        </div>
+        <div>
+          <label className={labelClass}>Condition</label>
+          <select value={condition} onChange={(e) => setCondition(e.target.value)} className={inputClass}>
+            <option value="Brand New">Brand New</option>
+            <option value="Excellent Condition">Excellent Condition</option>
+            <option value="Used">Used</option>
+          </select>
+        </div>
+      </div>
+    </div>
+  );
+
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/60 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-200">
-      <div className="bg-white w-full max-w-2xl rounded-xl shadow-2xl overflow-hidden border border-slate-200">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 bg-slate-50">
+      <div className="bg-white w-full max-w-2xl rounded-xl shadow-2xl overflow-hidden border border-slate-200 max-h-[90vh] flex flex-col">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 bg-slate-50 shrink-0">
           <div className="flex items-center gap-2">
             <Tag className="w-5 h-5 text-blue-600" />
             <h3 className="font-heading text-lg font-bold text-slate-900">
@@ -150,7 +424,7 @@ export const PostListingModal: React.FC<PostListingModalProps> = ({
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-100 transition-colors"
+            className="p-1.5 rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
@@ -167,7 +441,7 @@ export const PostListingModal: React.FC<PostListingModalProps> = ({
             </p>
           </div>
         ) : (
-          <form onSubmit={handleSubmit} className="p-6 space-y-4">
+          <form onSubmit={handleSubmit} className="p-6 space-y-4 overflow-y-auto">
             {/* Category Select Tabs */}
             <div>
               <label className="block text-xs font-bold uppercase text-slate-500 mb-2">
@@ -178,10 +452,12 @@ export const PostListingModal: React.FC<PostListingModalProps> = ({
                   <button
                     key={cat}
                     type="button"
-                    onClick={() => setCategory(cat)}
+                    onClick={() => handleCategoryChange(cat)}
                     className={`py-2.5 px-3 rounded-lg text-xs font-bold border transition-colors cursor-pointer ${
                       category === cat
-                        ? 'bg-blue-600 text-white border-blue-600 shadow-2xs'
+                        ? cat === 'cars_vehicles' ? 'bg-blue-600 text-white border-blue-600 shadow-2xs'
+                        : cat === 'heavy_machinery' ? 'bg-amber-600 text-white border-amber-600 shadow-2xs'
+                        : 'bg-emerald-600 text-white border-emerald-600 shadow-2xs'
                         : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
                     }`}
                   >
@@ -193,24 +469,44 @@ export const PostListingModal: React.FC<PostListingModalProps> = ({
 
             {/* Listing Title */}
             <div>
-              <label className="block text-xs font-bold uppercase text-slate-500 mb-1">
-                Asset Title / Model
+              <label className={labelClass}>
+                {category === 'properties' ? 'Property Title' : 'Asset Title / Model'}
               </label>
               <input
                 type="text"
                 required
-                placeholder="e.g., 2023 Toyota Hilux GR Sport 4x4 or Cat 320 GC"
+                placeholder={
+                  category === 'cars_vehicles' ? 'e.g., 2023 Toyota Hilux GR Sport 4x4'
+                    : category === 'heavy_machinery' ? 'e.g., Cat 320 GC Hydraulic Excavator'
+                    : 'e.g., 3-Bedroom Apartment in East Legon'
+                }
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                className="w-full bg-white border border-slate-200 rounded-lg p-2.5 text-sm text-slate-900 outline-none focus:border-blue-500 shadow-2xs"
+                className={inputClass}
+              />
+            </div>
+
+            {/* Sub-Category */}
+            <div>
+              <label className={labelClass}>Sub-Category</label>
+              <input
+                type="text"
+                placeholder={
+                  category === 'cars_vehicles' ? 'e.g. SUV, Sedan, Pickup, Truck'
+                    : category === 'heavy_machinery' ? 'e.g. Excavator, Dozer, Loader, Crane'
+                    : 'e.g. Apartment, House, Office, Land'
+                }
+                value={subCategory}
+                onChange={(e) => setSubCategory(e.target.value)}
+                className={inputClass}
               />
             </div>
 
             {/* Price & Location */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-bold uppercase text-slate-500 mb-1">
-                  Asking Price (GHS)
+                <label className={labelClass}>
+                  {category === 'properties' && transactionType === 'For Rent' ? 'Rent Price (GHS)' : 'Asking Price (GHS)'}
                 </label>
                 <input
                   type="number"
@@ -218,19 +514,12 @@ export const PostListingModal: React.FC<PostListingModalProps> = ({
                   placeholder="e.g., 650000"
                   value={price}
                   onChange={(e) => setPrice(e.target.value)}
-                  className="w-full bg-white border border-slate-200 rounded-lg p-2.5 text-sm text-slate-900 outline-none focus:border-blue-500 shadow-2xs"
+                  className={inputClass}
                 />
               </div>
-
               <div>
-                <label className="block text-xs font-bold uppercase text-slate-500 mb-1">
-                  City / Location (Ghana)
-                </label>
-                <select
-                  value={location}
-                  onChange={(e) => setLocation(e.target.value)}
-                  className="w-full bg-white border border-slate-200 rounded-lg p-2.5 text-sm text-slate-900 outline-none focus:border-blue-500 shadow-2xs"
-                >
+                <label className={labelClass}>City / Location (Ghana)</label>
+                <select value={location} onChange={(e) => setLocation(e.target.value)} className={inputClass}>
                   <option value="Accra">Accra</option>
                   <option value="Tema Port">Tema Port</option>
                   <option value="Kumasi">Kumasi</option>
@@ -242,50 +531,14 @@ export const PostListingModal: React.FC<PostListingModalProps> = ({
               </div>
             </div>
 
-            {/* Make & Year & Condition */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div>
-                <label className="block text-xs font-bold uppercase text-slate-500 mb-1">
-                  Make / Manufacturer
-                </label>
-                <input
-                  type="text"
-                  placeholder="e.g. Toyota, Caterpillar, Volvo"
-                  value={make}
-                  onChange={(e) => setMake(e.target.value)}
-                  className="w-full bg-white border border-slate-200 rounded-lg p-2.5 text-sm text-slate-900 outline-none focus:border-blue-500 shadow-2xs"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold uppercase text-slate-500 mb-1">Year</label>
-                <input
-                  type="number"
-                  placeholder="2022"
-                  value={year}
-                  onChange={(e) => setYear(e.target.value)}
-                  className="w-full bg-white border border-slate-200 rounded-lg p-2.5 text-sm text-slate-900 outline-none focus:border-blue-500 shadow-2xs"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold uppercase text-slate-500 mb-1">Condition</label>
-                <select
-                  value={condition}
-                  onChange={(e) => setCondition(e.target.value)}
-                  className="w-full bg-white border border-slate-200 rounded-lg p-2.5 text-sm text-slate-900 outline-none focus:border-blue-500 shadow-2xs"
-                >
-                  <option value="Excellent Condition">Excellent Condition</option>
-                  <option value="Brand New">Brand New</option>
-                  <option value="Dealer Certified">Dealer Certified</option>
-                  <option value="Used">Used</option>
-                </select>
-              </div>
-            </div>
+            {/* ─── Category-Specific Fields ─────────────────────────────── */}
+            {category === 'cars_vehicles' && renderVehicleFields()}
+            {category === 'heavy_machinery' && renderMachineryFields()}
+            {category === 'properties' && renderPropertyFields()}
 
             {/* Image Upload — Cloudinary */}
             <div>
-              <label className="block text-xs font-bold uppercase text-slate-500 mb-1">
+              <label className={labelClass}>
                 Listing Image <span className="text-slate-400 normal-case font-normal">(uploaded to Cloudinary)</span>
               </label>
               <div
@@ -336,15 +589,19 @@ export const PostListingModal: React.FC<PostListingModalProps> = ({
 
             {/* Description */}
             <div>
-              <label className="block text-xs font-bold uppercase text-slate-500 mb-1">
+              <label className={labelClass}>
                 Detailed Specifications &amp; Notes
               </label>
               <textarea
                 rows={3}
-                placeholder="Include maintenance records, hours/mileage, custom attachments or lease terms..."
+                placeholder={
+                  category === 'cars_vehicles' ? 'Include service history, mileage details, any modifications...'
+                    : category === 'heavy_machinery' ? 'Include maintenance records, operating hours, attachments...'
+                    : 'Include amenities, nearby landmarks, lease terms...'
+                }
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                className="w-full bg-white border border-slate-200 rounded-lg p-2.5 text-sm text-slate-900 outline-none focus:border-blue-500 shadow-2xs"
+                className={inputClass}
               />
             </div>
 

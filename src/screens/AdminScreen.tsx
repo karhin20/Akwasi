@@ -1233,64 +1233,233 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
                 </div>
               </div>
 
-              {/* LOCATION & SPECS */}
-              <div className="space-y-3">
-                <h4 className="font-bold text-slate-900 border-b border-slate-100 pb-1">Location &amp; Specifications</h4>
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="block font-bold text-slate-700 mb-1">Location</label>
-                    <input
-                      type="text"
-                      value={editingListing.location}
-                      onChange={(e) => setEditingListing({ ...editingListing, location: e.target.value })}
-                      className="w-full p-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-slate-400"
-                    />
+              {/* CATEGORY-SPECIFIC SPECIFICATIONS */}
+              {editingListing.category === 'cars_vehicles' && (
+                <div className="space-y-3">
+                  <h4 className="font-bold text-slate-900 border-b border-blue-100 pb-1 text-blue-800 flex items-center gap-1.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-blue-500" />
+                    Vehicle Specifications
+                  </h4>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block font-bold text-slate-700 mb-1">Location</label>
+                      <input type="text" value={editingListing.location} onChange={(e) => setEditingListing({ ...editingListing, location: e.target.value })} className="w-full p-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-slate-400" />
+                    </div>
+                    <div>
+                      <label className="block font-bold text-slate-700 mb-1">City / Region</label>
+                      <input type="text" value={editingListing.city} onChange={(e) => setEditingListing({ ...editingListing, city: e.target.value })} className="w-full p-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-slate-400" />
+                    </div>
                   </div>
-
-                  <div>
-                    <label className="block font-bold text-slate-700 mb-1">City / Region</label>
-                    <input
-                      type="text"
-                      value={editingListing.city}
-                      onChange={(e) => setEditingListing({ ...editingListing, city: e.target.value })}
-                      className="w-full p-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-slate-400"
-                    />
+                  <div className="grid grid-cols-3 gap-3">
+                    <div>
+                      <label className="block font-bold text-slate-700 mb-1">Make / Brand</label>
+                      <input type="text" value={editingListing.make || ''} onChange={(e) => setEditingListing({ ...editingListing, make: e.target.value })} className="w-full p-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-slate-400" />
+                    </div>
+                    <div>
+                      <label className="block font-bold text-slate-700 mb-1">Model</label>
+                      <input type="text" value={editingListing.model || ''} onChange={(e) => setEditingListing({ ...editingListing, model: e.target.value })} className="w-full p-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-slate-400" />
+                    </div>
+                    <div>
+                      <label className="block font-bold text-slate-700 mb-1">Year</label>
+                      <input type="number" value={editingListing.year || ''} onChange={(e) => setEditingListing({ ...editingListing, year: parseInt(e.target.value) || undefined })} className="w-full p-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-slate-400" />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block font-bold text-slate-700 mb-1">Mileage</label>
+                      <input type="text" value={editingListing.mileage || ''} onChange={(e) => setEditingListing({ ...editingListing, mileage: e.target.value })} className="w-full p-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-slate-400" placeholder="e.g. 45,000 km" />
+                    </div>
+                    <div>
+                      <label className="block font-bold text-slate-700 mb-1">Body Type</label>
+                      <select value={editingListing.bodyType || ''} onChange={(e) => setEditingListing({ ...editingListing, bodyType: e.target.value as ListingItem['bodyType'] })} className="w-full p-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-slate-400 bg-white">
+                        <option value="">Select body type</option>
+                        <option value="SUV">SUV</option>
+                        <option value="Sedan">Sedan</option>
+                        <option value="Pickup">Pickup</option>
+                        <option value="Commercial Truck">Commercial Truck</option>
+                        <option value="Heavy Equipment">Heavy Equipment</option>
+                        <option value="Tractor Head">Tractor Head</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-3 gap-3">
+                    <div>
+                      <label className="block font-bold text-slate-700 mb-1">Fuel Type</label>
+                      <select value={editingListing.fuelType || ''} onChange={(e) => setEditingListing({ ...editingListing, fuelType: e.target.value as ListingItem['fuelType'] })} className="w-full p-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-slate-400 bg-white">
+                        <option value="">Select</option>
+                        <option value="Diesel">Diesel</option>
+                        <option value="Petrol">Petrol</option>
+                        <option value="Electric/Hybrid">Electric / Hybrid</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block font-bold text-slate-700 mb-1">Transmission</label>
+                      <select value={editingListing.transmission || ''} onChange={(e) => setEditingListing({ ...editingListing, transmission: e.target.value as ListingItem['transmission'] })} className="w-full p-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-slate-400 bg-white">
+                        <option value="">Select</option>
+                        <option value="Automatic">Automatic</option>
+                        <option value="Manual">Manual</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block font-bold text-slate-700 mb-1">Condition</label>
+                      <select value={editingListing.condition || ''} onChange={(e) => setEditingListing({ ...editingListing, condition: e.target.value as ListingItem['condition'] })} className="w-full p-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-slate-400 bg-white">
+                        <option value="Brand New">Brand New</option>
+                        <option value="Excellent Condition">Excellent Condition</option>
+                        <option value="Dealer Certified">Dealer Certified</option>
+                        <option value="Used">Used</option>
+                      </select>
+                    </div>
                   </div>
                 </div>
-
-                <div className="grid grid-cols-3 gap-3">
-                  <div>
-                    <label className="block font-bold text-slate-700 mb-1">Condition</label>
-                    <input
-                      type="text"
-                      value={editingListing.condition || ''}
-                      onChange={(e) => setEditingListing({ ...editingListing, condition: e.target.value as ListingItem['condition'] })}
-                      className="w-full p-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-slate-400"
-                      placeholder="e.g. Excellent Condition"
-                    />
+              )}
+              {editingListing.category === 'heavy_machinery' && (
+                <div className="space-y-3">
+                  <h4 className="font-bold text-slate-900 border-b border-amber-100 pb-1 text-amber-800 flex items-center gap-1.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+                    Machinery Specifications
+                  </h4>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block font-bold text-slate-700 mb-1">Location</label>
+                      <input type="text" value={editingListing.location} onChange={(e) => setEditingListing({ ...editingListing, location: e.target.value })} className="w-full p-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-slate-400" />
+                    </div>
+                    <div>
+                      <label className="block font-bold text-slate-700 mb-1">City / Region</label>
+                      <input type="text" value={editingListing.city} onChange={(e) => setEditingListing({ ...editingListing, city: e.target.value })} className="w-full p-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-slate-400" />
+                    </div>
                   </div>
-
-                  <div>
-                    <label className="block font-bold text-slate-700 mb-1">Make / Brand</label>
-                    <input
-                      type="text"
-                      value={editingListing.make || ''}
-                      onChange={(e) => setEditingListing({ ...editingListing, make: e.target.value })}
-                      className="w-full p-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-slate-400"
-                    />
+                  <div className="grid grid-cols-3 gap-3">
+                    <div>
+                      <label className="block font-bold text-slate-700 mb-1">Make / Brand</label>
+                      <input type="text" value={editingListing.make || ''} onChange={(e) => setEditingListing({ ...editingListing, make: e.target.value })} className="w-full p-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-slate-400" />
+                    </div>
+                    <div>
+                      <label className="block font-bold text-slate-700 mb-1">Model</label>
+                      <input type="text" value={editingListing.model || ''} onChange={(e) => setEditingListing({ ...editingListing, model: e.target.value })} className="w-full p-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-slate-400" />
+                    </div>
+                    <div>
+                      <label className="block font-bold text-slate-700 mb-1">Year</label>
+                      <input type="number" value={editingListing.year || ''} onChange={(e) => setEditingListing({ ...editingListing, year: parseInt(e.target.value) || undefined })} className="w-full p-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-slate-400" />
+                    </div>
                   </div>
-
-                  <div>
-                    <label className="block font-bold text-slate-700 mb-1">Model / Year</label>
-                    <input
-                      type="text"
-                      value={editingListing.model || ''}
-                      onChange={(e) => setEditingListing({ ...editingListing, model: e.target.value })}
-                      className="w-full p-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-slate-400"
-                    />
+                  <div className="grid grid-cols-3 gap-3">
+                    <div>
+                      <label className="block font-bold text-slate-700 mb-1">Operating Hours</label>
+                      <input type="number" value={editingListing.hours || ''} onChange={(e) => setEditingListing({ ...editingListing, hours: parseInt(e.target.value) || undefined })} className="w-full p-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-slate-400" placeholder="e.g. 3500" />
+                    </div>
+                    <div>
+                      <label className="block font-bold text-slate-700 mb-1">Tonnage</label>
+                      <input type="text" value={editingListing.tonnage || ''} onChange={(e) => setEditingListing({ ...editingListing, tonnage: e.target.value })} className="w-full p-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-slate-400" placeholder="e.g. 20 Ton" />
+                    </div>
+                    <div>
+                      <label className="block font-bold text-slate-700 mb-1">Weight</label>
+                      <input type="text" value={editingListing.weight || ''} onChange={(e) => setEditingListing({ ...editingListing, weight: e.target.value })} className="w-full p-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-slate-400" placeholder="e.g. 22,000 kg" />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block font-bold text-slate-700 mb-1">Fuel Type</label>
+                      <select value={editingListing.fuelType || ''} onChange={(e) => setEditingListing({ ...editingListing, fuelType: e.target.value as ListingItem['fuelType'] })} className="w-full p-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-slate-400 bg-white">
+                        <option value="">Select</option>
+                        <option value="Diesel">Diesel</option>
+                        <option value="Petrol">Petrol</option>
+                        <option value="Electric/Hybrid">Electric / Hybrid</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block font-bold text-slate-700 mb-1">Condition</label>
+                      <select value={editingListing.condition || ''} onChange={(e) => setEditingListing({ ...editingListing, condition: e.target.value as ListingItem['condition'] })} className="w-full p-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-slate-400 bg-white">
+                        <option value="Brand New">Brand New</option>
+                        <option value="Excellent Condition">Excellent Condition</option>
+                        <option value="Dealer Certified">Dealer Certified</option>
+                        <option value="Used">Used</option>
+                      </select>
+                    </div>
                   </div>
                 </div>
-              </div>
+              )}
+
+              {editingListing.category === 'properties' && (
+                <div className="space-y-3">
+                  <h4 className="font-bold text-slate-900 border-b border-emerald-100 pb-1 text-emerald-800 flex items-center gap-1.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                    Property Details
+                  </h4>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block font-bold text-slate-700 mb-1">Location</label>
+                      <input type="text" value={editingListing.location} onChange={(e) => setEditingListing({ ...editingListing, location: e.target.value })} className="w-full p-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-slate-400" />
+                    </div>
+                    <div>
+                      <label className="block font-bold text-slate-700 mb-1">City / Region</label>
+                      <input type="text" value={editingListing.city} onChange={(e) => setEditingListing({ ...editingListing, city: e.target.value })} className="w-full p-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-slate-400" />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block font-bold text-slate-700 mb-1">Property Type</label>
+                      <select value={editingListing.propertyType || ''} onChange={(e) => setEditingListing({ ...editingListing, propertyType: e.target.value as ListingItem['propertyType'] })} className="w-full p-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-slate-400 bg-white">
+                        <option value="">Select</option>
+                        <option value="Apartment">Apartment</option>
+                        <option value="House / Villa">House / Villa</option>
+                        <option value="Commercial">Commercial</option>
+                        <option value="Land">Land</option>
+                        <option value="Townhouse">Townhouse</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block font-bold text-slate-700 mb-1">Transaction Type</label>
+                      <select value={editingListing.transactionType || ''} onChange={(e) => setEditingListing({ ...editingListing, transactionType: e.target.value as ListingItem['transactionType'] })} className="w-full p-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-slate-400 bg-white">
+                        <option value="">Select</option>
+                        <option value="For Sale">For Sale</option>
+                        <option value="For Rent">For Rent</option>
+                      </select>
+                    </div>
+                  </div>
+                  {editingListing.transactionType === 'For Rent' && (
+                    <div>
+                      <label className="block font-bold text-slate-700 mb-1">Price Period</label>
+                      <select value={editingListing.pricePeriod || '/ month'} onChange={(e) => setEditingListing({ ...editingListing, pricePeriod: e.target.value })} className="w-full p-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-slate-400 bg-white">
+                        <option value="/ month">Per Month</option>
+                        <option value="/ year">Per Year</option>
+                        <option value="/ week">Per Week</option>
+                      </select>
+                    </div>
+                  )}
+                  <div className="grid grid-cols-4 gap-3">
+                    <div>
+                      <label className="block font-bold text-slate-700 mb-1">Beds</label>
+                      <input type="number" value={editingListing.beds || ''} onChange={(e) => setEditingListing({ ...editingListing, beds: parseInt(e.target.value) || undefined })} className="w-full p-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-slate-400" />
+                    </div>
+                    <div>
+                      <label className="block font-bold text-slate-700 mb-1">Baths</label>
+                      <input type="number" value={editingListing.baths || ''} onChange={(e) => setEditingListing({ ...editingListing, baths: parseInt(e.target.value) || undefined })} className="w-full p-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-slate-400" />
+                    </div>
+                    <div>
+                      <label className="block font-bold text-slate-700 mb-1">Sqm</label>
+                      <input type="number" value={editingListing.sqm || ''} onChange={(e) => setEditingListing({ ...editingListing, sqm: parseInt(e.target.value) || undefined })} className="w-full p-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-slate-400" />
+                    </div>
+                    <div>
+                      <label className="block font-bold text-slate-700 mb-1">Floors</label>
+                      <input type="number" value={editingListing.floors || ''} onChange={(e) => setEditingListing({ ...editingListing, floors: parseInt(e.target.value) || undefined })} className="w-full p-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-slate-400" />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block font-bold text-slate-700 mb-1">Parking</label>
+                      <input type="text" value={editingListing.parking || ''} onChange={(e) => setEditingListing({ ...editingListing, parking: e.target.value })} className="w-full p-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-slate-400" placeholder="e.g. 2 covered spaces" />
+                    </div>
+                    <div>
+                      <label className="block font-bold text-slate-700 mb-1">Condition</label>
+                      <select value={editingListing.condition || ''} onChange={(e) => setEditingListing({ ...editingListing, condition: e.target.value as ListingItem['condition'] })} className="w-full p-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-slate-400 bg-white">
+                        <option value="Brand New">Brand New</option>
+                        <option value="Excellent Condition">Excellent Condition</option>
+                        <option value="Used">Used</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {/* DESCRIPTION */}
               <div>
