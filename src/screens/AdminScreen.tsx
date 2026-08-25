@@ -218,7 +218,7 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
   const handleToggleStatus = async (id: string) => {
     const item = listings.find((l) => l.id === id);
     if (!item) return;
-    const nextStatus = item.status === 'draft' || item.status === 'rejected' ? 'published' : 'draft';
+    const nextStatus: 'published' | 'draft' = item.status === 'draft' || item.status === 'rejected' ? 'published' : 'draft';
 
     const updated = listings.map((l) => (l.id === id ? { ...l, status: nextStatus } : l));
     onUpdateListings(updated);
@@ -1264,7 +1264,7 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
                     <input
                       type="text"
                       value={editingListing.condition || ''}
-                      onChange={(e) => setEditingListing({ ...editingListing, condition: e.target.value })}
+                      onChange={(e) => setEditingListing({ ...editingListing, condition: e.target.value as ListingItem['condition'] })}
                       className="w-full p-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-slate-400"
                       placeholder="e.g. Excellent Condition"
                     />
