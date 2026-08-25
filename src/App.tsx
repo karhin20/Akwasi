@@ -15,8 +15,38 @@ import { ServicesModal } from './components/ServicesModal';
 import { EnquiryChatWidget } from './components/EnquiryChatWidget';
 import { listings as listingsApi } from './lib/api';
 
+function screenToPath(screen: ScreenType, listingId?: string): string {
+  switch (screen) {
+    case 'home': return '/';
+    case 'vehicles': return '/vehicles';
+    case 'machinery': return '/machinery';
+    case 'properties': return '/properties';
+    case 'services': return '/services';
+    case 'admin': return '/admin';
+    case 'listing_detail': return listingId ? `/listing/${listingId}` : '/';
+    default: return '/';
+  }
+}
+
+function pathToScreen(path: string): { screen: ScreenType; listingId?: string } {
+  if (path === '/' || path === '/home') return { screen: 'home' };
+  if (path === '/vehicles') return { screen: 'vehicles' };
+  if (path === '/machinery') return { screen: 'machinery' };
+  if (path === '/properties') return { screen: 'properties' };
+  if (path === '/services') return { screen: 'services' };
+  if (path === '/admin') return { screen: 'admin' };
+  if (path.startsWith('/listing/')) {
+    const parts = path.split('/');
+    const listingId = parts[2];
+    return { screen: 'listing_detail', listingId };
+  }
+  return { screen: 'home' };
+}
+
 export function App() {
-  const [currentScreen, setCurrentScreen] = useState<ScreenType>('home');
+  const [currentScreen, setCurrentScreen] = useState<ScreenType>(() => {
+    return pathToScreen(window.location.pathname).screen;
+  });
   const [previousScreen, setPreviousScreen] = useState<ScreenType>('home');
   const [listings, setListings] = useState<ListingItem[]>([]);
   const [listingsLoading, setListingsLoading] = useState(true);
@@ -47,6 +77,44 @@ export function App() {
     fetchListings();
   }, [fetchListings]);
 
+  // Sync state with URL path updates (like PopState back/forward actions)
+  useEffect(() => {
+    const handleLocationChange = () => {
+      const { screen, listingId } = pathToScreen(window.location.pathname);
+      if (screen === 'listing_detail' && listingId) {
+        if (listings.length > 0) {
+          const match = listings.find((l) => l.id === listingId);
+          if (match) {
+            setSelectedListing(match);
+            setCurrentScreen('listing_detail');
+          } else {
+            window.history.replaceState({ screen: 'home' }, '', '/');
+            setCurrentScreen('home');
+          }
+        }
+      } else {
+        setCurrentScreen(screen);
+      }
+    };
+
+    handleLocationChange();
+
+    window.addEventListener('popstate', handleLocationChange);
+    return () => {
+      window.removeEventListener('popstate', handleLocationChange);
+    };
+  }, [listings]);
+
+  const navigate = useCallback((screen: ScreenType, listingId?: string) => {
+    setPreviousScreen(currentScreen);
+    const path = screenToPath(screen, listingId);
+    if (window.location.pathname !== path) {
+      window.history.pushState({ screen, listingId }, '', path);
+    }
+    setCurrentScreen(screen);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [currentScreen]);
+
   const handleAddListing = (newListing: ListingItem) => {
     setListings((prev) => [newListing, ...prev]);
     setUserListings((prev) => [newListing, ...prev]);
@@ -55,25 +123,23 @@ export function App() {
   const handleOpenListingDetail = (listing: ListingItem) => {
     setSelectedListing(listing);
     setPreviousScreen(currentScreen !== 'listing_detail' ? currentScreen : 'home');
-    setCurrentScreen('listing_detail');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    navigate('listing_detail', listing.id);
   };
 
   const handleBackFromDetail = () => {
     if (selectedListing) {
       if (selectedListing.category === 'properties') {
-        setCurrentScreen('properties');
+        navigate('properties');
       } else if (selectedListing.category === 'heavy_machinery') {
-        setCurrentScreen('machinery');
+        navigate('machinery');
       } else if (selectedListing.category === 'cars_vehicles') {
-        setCurrentScreen('vehicles');
+        navigate('vehicles');
       } else {
-        setCurrentScreen(previousScreen || 'home');
+        navigate(previousScreen || 'home');
       }
     } else {
-      setCurrentScreen(previousScreen || 'home');
+      navigate(previousScreen || 'home');
     }
-    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleSearchWithParams = (keyword: string, location: string, category: string) => {
@@ -90,35 +156,24 @@ export function App() {
       {/* Sticky Header Nav */}
       <Header
         currentScreen={currentScreen}
-        onNavigate={(screen) => {
-          setPreviousScreen(currentScreen);
-          setCurrentScreen(screen);
-          window.scrollTo({ top: 0, behavior: 'smooth' });
-        }}
+        onNavigate={navigate}
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
         onSearchSubmit={(q) => {
           setSearchQuery(q);
           if (currentScreen !== 'vehicles' && currentScreen !== 'machinery' && currentScreen !== 'properties') {
-            setCurrentScreen('vehicles');
+            navigate('vehicles');
           }
         }}
         onOpenPostListing={() => setIsPostModalOpen(true)}
-        onOpenAccount={() => {
-          setCurrentScreen('admin');
-          window.scrollTo({ top: 0, behavior: 'smooth' });
-        }}
+        onOpenAccount={() => navigate('admin')}
       />
 
       {/* Screen Render */}
       <div className="flex-grow flex flex-col">
         {currentScreen === 'home' && (
           <HomeScreen
-            onNavigate={(screen) => {
-              setPreviousScreen('home');
-              setCurrentScreen(screen);
-              window.scrollTo({ top: 0, behavior: 'smooth' });
-            }}
+            onNavigate={navigate}
             onSelectListing={handleOpenListingDetail}
             listings={listings}
             onSearchWithParams={handleSearchWithParams}
@@ -150,11 +205,7 @@ export function App() {
 
         {currentScreen === 'services' && (
           <ServicesScreen
-            onNavigate={(screen) => {
-              setPreviousScreen('services');
-              setCurrentScreen(screen);
-              window.scrollTo({ top: 0, behavior: 'smooth' });
-            }}
+            onNavigate={navigate}
           />
         )}
 
@@ -162,11 +213,7 @@ export function App() {
           <ListingDetailScreen
             listing={selectedListing}
             onBack={handleBackFromDetail}
-            onNavigate={(screen) => {
-              setPreviousScreen('listing_detail');
-              setCurrentScreen(screen);
-              window.scrollTo({ top: 0, behavior: 'smooth' });
-            }}
+            onNavigate={navigate}
             onSelectListing={handleOpenListingDetail}
             allListings={listings}
           />
@@ -176,11 +223,7 @@ export function App() {
           <AdminScreen
             listings={listings}
             onUpdateListings={setListings}
-            onNavigate={(screen) => {
-              setPreviousScreen('admin');
-              setCurrentScreen(screen);
-              window.scrollTo({ top: 0, behavior: 'smooth' });
-            }}
+            onNavigate={navigate}
             onOpenListingDetail={handleOpenListingDetail}
             onOpenCreateListing={() => setIsPostModalOpen(true)}
           />
@@ -189,15 +232,10 @@ export function App() {
 
       {/* Industrial Footer */}
       <Footer
-        onNavigate={(screen) => {
-          setPreviousScreen(currentScreen);
-          setCurrentScreen(screen);
-          window.scrollTo({ top: 0, behavior: 'smooth' });
-        }}
+        onNavigate={navigate}
         onOpenService={(serviceName) => {
           if (serviceName === 'Fumigation Services' || serviceName === 'Property Management') {
-            setCurrentScreen('services');
-            window.scrollTo({ top: 0, behavior: 'smooth' });
+            navigate('services');
           } else {
             setActiveServiceModal(serviceName);
           }
