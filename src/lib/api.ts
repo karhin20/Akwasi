@@ -101,6 +101,13 @@ export const media = {
       body: formData,
     });
   },
+
+  delete: async (url: string): Promise<{ success: boolean; message: string }> => {
+    return request<{ success: boolean; message: string }>('/media/delete', {
+      method: 'POST',
+      body: JSON.stringify({ url }),
+    });
+  },
 };
 
 // ─── Chat ─────────────────────────────────────────────────────────────────────

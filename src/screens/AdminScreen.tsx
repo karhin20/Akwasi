@@ -33,7 +33,8 @@ import {
   Loader2,
   User,
 } from 'lucide-react';
-import { auth, authStorage, enquiries as enquiriesApi, listings as listingsApi } from '../lib/api';
+import { auth, authStorage, enquiries as enquiriesApi, listings as listingsApi, media as mediaApi } from '../lib/api';
+import { Upload, X, MapPin, Calendar, Gauge, Fuel, ShieldAlert } from 'lucide-react';
 
 interface AdminScreenProps {
   listings: ListingItem[];
@@ -68,6 +69,11 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
 
   // Edit Modal State
   const [editingListing, setEditingListing] = useState<ListingItem | null>(null);
+  const [removedImages, setRemovedImages] = useState<string[]>([]);
+  const [isUploadingImage, setIsUploadingImage] = useState<boolean>(false);
+
+  // Preview Modal State
+  const [previewListing, setPreviewListing] = useState<ListingItem | null>(null);
 
   // Enquiries State
   const [enquiriesList, setEnquiriesList] = useState<EnquiryItem[]>([]);
@@ -209,8 +215,25 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
     }
   };
 
+  const handleToggleStatus = async (id: string) => {
+    const item = listings.find((l) => l.id === id);
+    if (!item) return;
+    const nextStatus = item.status === 'draft' || item.status === 'rejected' ? 'published' : 'draft';
+
+    const updated = listings.map((l) => (l.id === id ? { ...l, status: nextStatus } : l));
+    onUpdateListings(updated);
+    showToast(nextStatus === 'published' ? `Listing published (Live)` : `Listing set to Draft (Hidden)`);
+
+    try {
+      await listingsApi.update(id, { status: nextStatus });
+    } catch {
+      showToast('Failed to change status on backend');
+      onUpdateListings(listings); // revert
+    }
+  };
+
   const handleDeleteListing = async (id: string, title: string) => {
-    if (window.confirm(`Are you sure you want to permanently delete "${title}"?`)) {
+    if (window.confirm(`Are you sure you want to permanently delete "${title}"? This will also remove associated Cloudinary images.`)) {
       const updated = listings.filter((item) => item.id !== id);
       onUpdateListings(updated);
       showToast(`Listing deleted from inventory.`);
@@ -223,6 +246,53 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
     }
   };
 
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files || e.target.files.length === 0 || !editingListing) return;
+    const file = e.target.files[0];
+    setIsUploadingImage(true);
+
+    try {
+      const res = await mediaApi.upload(file, 'akwasi/listings');
+      if (res.url) {
+        setEditingListing((prev) => {
+          if (!prev) return null;
+          const currentGallery = prev.gallery || [];
+          return {
+            ...prev,
+            gallery: [...currentGallery, res.url],
+            image: prev.image ? prev.image : res.url, // set main image if empty
+          };
+        });
+        showToast('Image uploaded successfully to Cloudinary');
+      }
+    } catch (err) {
+      console.error('Failed to upload image:', err);
+      showToast('Failed to upload image');
+    } finally {
+      setIsUploadingImage(false);
+      e.target.value = ''; // reset file input
+    }
+  };
+
+  const handleRemoveImage = (imgUrl: string) => {
+    if (!editingListing) return;
+    setRemovedImages((prev) => [...prev, imgUrl]);
+
+    setEditingListing((prev) => {
+      if (!prev) return null;
+      const newGallery = (prev.gallery || []).filter((u) => u !== imgUrl);
+      let newMainImage = prev.image;
+      if (prev.image === imgUrl) {
+        newMainImage = newGallery[0] || '';
+      }
+      return {
+        ...prev,
+        image: newMainImage,
+        gallery: newGallery,
+      };
+    });
+  };
+
   const handleSaveEdit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingListing) return;
@@ -231,11 +301,17 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
     onUpdateListings(updated);
     const targetId = editingListing.id;
     const targetData = editingListing;
+    const imagesToDelete = [...removedImages];
+
     setEditingListing(null);
+    setRemovedImages([]);
     showToast(`Listing details updated.`);
 
     try {
-      await listingsApi.update(targetId, targetData as unknown as Record<string, unknown>);
+      await listingsApi.update(targetId, {
+        ...(targetData as unknown as Record<string, unknown>),
+        removedImages: imagesToDelete,
+      });
     } catch {
       showToast('Failed to save edits to server');
     }
@@ -614,17 +690,28 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
                           <td className="py-3.5 px-4 font-extrabold text-slate-900">{item.priceFormatted}</td>
 
                           <td className="py-3.5 px-4">
-                            {item.status === 'rejected' ? (
-                              <span className="bg-slate-200 text-slate-800 text-[10px] font-bold px-2 py-1 rounded-md inline-flex items-center gap-1">
-                                <XCircle className="w-3 h-3 text-slate-600" />
-                                Rejected
-                              </span>
-                            ) : (
-                              <span className="bg-slate-100 text-slate-800 text-[10px] font-bold px-2 py-1 rounded-md inline-flex items-center gap-1">
-                                <CheckCircle className="w-3 h-3 text-slate-600" />
-                                Live
-                              </span>
-                            )}
+                            <button
+                              onClick={() => handleToggleStatus(item.id)}
+                              className="cursor-pointer"
+                              title="Click to toggle Live / Draft status"
+                            >
+                              {item.status === 'draft' ? (
+                                <span className="bg-[#f97316]/10 text-[#f97316] border border-[#f97316]/30 text-[10px] font-bold px-2.5 py-1 rounded-md inline-flex items-center gap-1 hover:bg-[#f97316]/20 transition-colors">
+                                  <XCircle className="w-3 h-3 text-[#f97316]" />
+                                  Draft (Hidden)
+                                </span>
+                              ) : item.status === 'rejected' ? (
+                                <span className="bg-slate-200 text-slate-800 text-[10px] font-bold px-2.5 py-1 rounded-md inline-flex items-center gap-1 hover:bg-slate-300 transition-colors">
+                                  <XCircle className="w-3 h-3 text-slate-600" />
+                                  Rejected
+                                </span>
+                              ) : (
+                                <span className="bg-emerald-100 text-emerald-800 border border-emerald-200 text-[10px] font-bold px-2.5 py-1 rounded-md inline-flex items-center gap-1 hover:bg-emerald-200 transition-colors">
+                                  <CheckCircle className="w-3 h-3 text-emerald-600" />
+                                  Live
+                                </span>
+                              )}
+                            </button>
                           </td>
 
                           <td className="py-3.5 px-4">
@@ -642,9 +729,9 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
                           <td className="py-3.5 px-4 text-right">
                             <div className="flex items-center justify-end gap-1.5">
                               <button
-                                onClick={() => onOpenListingDetail(item)}
+                                onClick={() => setPreviewListing(item)}
                                 className="p-1.5 text-slate-600 hover:text-slate-900 transition-colors cursor-pointer"
-                                title="View Details"
+                                title="Quick Preview"
                               >
                                 <Eye className="w-4 h-4" />
                               </button>
@@ -872,77 +959,364 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
         )}
       </div>
 
-      {/* EDIT LISTING MODAL */}
-      {editingListing && (
-        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl animate-in zoom-in-95 duration-150">
-            <div className="bg-slate-900 text-white p-4 flex items-center justify-between">
-              <h3 className="font-bold text-sm">Edit Listing: {editingListing.title}</h3>
-              <button onClick={() => setEditingListing(null)} className="text-slate-400 hover:text-white p-1 cursor-pointer">
+      {/* INLINE QUICK PREVIEW MODAL */}
+      {previewListing && (
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-white rounded-2xl w-full max-w-2xl overflow-hidden shadow-2xl animate-in zoom-in-95 duration-150 max-h-[90vh] flex flex-col">
+            <div className="bg-slate-900 text-white p-4 flex items-center justify-between shrink-0">
+              <div className="flex items-center gap-2">
+                <Eye className="w-4 h-4 text-orange-400" />
+                <h3 className="font-bold text-sm">Listing Quick Preview: {previewListing.title}</h3>
+              </div>
+              <button onClick={() => setPreviewListing(null)} className="text-slate-400 hover:text-white p-1 cursor-pointer">
                 <XCircle className="w-5 h-5 text-slate-300" />
               </button>
             </div>
 
-            <form onSubmit={handleSaveEdit} className="p-5 space-y-4 text-xs">
-              <div>
-                <label className="block font-bold text-slate-700 mb-1">Title</label>
-                <input
-                  type="text"
-                  value={editingListing.title}
-                  onChange={(e) => setEditingListing({ ...editingListing, title: e.target.value })}
-                  className="w-full p-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-slate-400 font-medium"
-                />
+            <div className="p-6 overflow-y-auto space-y-6 text-xs text-slate-700">
+              {/* Media gallery preview */}
+              <div className="space-y-2">
+                <div className="h-56 w-full bg-slate-100 rounded-xl overflow-hidden border border-slate-200">
+                  <img src={previewListing.image} alt={previewListing.title} className="w-full h-full object-cover" />
+                </div>
+                {previewListing.gallery && previewListing.gallery.length > 0 && (
+                  <div className="flex gap-2 overflow-x-auto pb-1">
+                    {previewListing.gallery.map((img, idx) => (
+                      <img key={idx} src={img} alt={`Gallery ${idx}`} className="w-16 h-16 object-cover rounded-lg border border-slate-200 shrink-0" />
+                    ))}
+                  </div>
+                )}
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              {/* Title & Price */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200 pb-4">
                 <div>
-                  <label className="block font-bold text-slate-700 mb-1">Price (GH₵)</label>
-                  <input
-                    type="number"
-                    value={editingListing.price}
-                    onChange={(e) => {
-                      const val = parseFloat(e.target.value) || 0;
-                      setEditingListing({
-                        ...editingListing,
-                        price: val,
-                        priceFormatted: `GH₵ ${val.toLocaleString()}`,
-                      });
-                    }}
-                    className="w-full p-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-slate-400 font-bold"
-                  />
+                  <h2 className="text-lg font-black text-slate-900">{previewListing.title}</h2>
+                  <div className="text-slate-500 font-medium flex items-center gap-1 mt-0.5">
+                    <MapPin className="w-3.5 h-3.5 text-slate-400" />
+                    <span>{previewListing.location}</span>
+                  </div>
                 </div>
-
-                <div>
-                  <label className="block font-bold text-slate-700 mb-1">Location</label>
-                  <input
-                    type="text"
-                    value={editingListing.location}
-                    onChange={(e) => setEditingListing({ ...editingListing, location: e.target.value })}
-                    className="w-full p-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-slate-400"
-                  />
+                <div className="text-right">
+                  <div className="text-xl font-extrabold text-slate-900">{previewListing.priceFormatted}</div>
+                  {previewListing.priceUsd && <div className="text-slate-400 font-medium">{previewListing.priceUsd}</div>}
                 </div>
               </div>
 
-              <div>
-                <label className="block font-bold text-slate-700 mb-1">Description</label>
-                <textarea
-                  rows={3}
-                  value={editingListing.description}
-                  onChange={(e) => setEditingListing({ ...editingListing, description: e.target.value })}
-                  className="w-full p-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-slate-400 resize-none"
-                />
+              {/* Specs Grid */}
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 bg-slate-50 p-4 rounded-xl border border-slate-200">
+                <div>
+                  <span className="text-slate-400 uppercase font-bold text-[10px]">Category</span>
+                  <p className="font-bold text-slate-800 capitalize">{previewListing.category.replace('_', ' ')}</p>
+                </div>
+                <div>
+                  <span className="text-slate-400 uppercase font-bold text-[10px]">Status</span>
+                  <p className="font-bold text-slate-800 capitalize">{previewListing.status || 'published'}</p>
+                </div>
+                <div>
+                  <span className="text-slate-400 uppercase font-bold text-[10px]">Condition</span>
+                  <p className="font-bold text-slate-800">{previewListing.condition || 'N/A'}</p>
+                </div>
+                {previewListing.make && (
+                  <div>
+                    <span className="text-slate-400 uppercase font-bold text-[10px]">Make / Model</span>
+                    <p className="font-bold text-slate-800">{previewListing.make} {previewListing.model}</p>
+                  </div>
+                )}
+                {previewListing.year && (
+                  <div>
+                    <span className="text-slate-400 uppercase font-bold text-[10px]">Year</span>
+                    <p className="font-bold text-slate-800">{previewListing.year}</p>
+                  </div>
+                )}
+                {previewListing.hours && (
+                  <div>
+                    <span className="text-slate-400 uppercase font-bold text-[10px]">Hours</span>
+                    <p className="font-bold text-slate-800">{previewListing.hours} hrs</p>
+                  </div>
+                )}
               </div>
 
+              {/* Description */}
+              <div>
+                <h4 className="font-bold text-slate-900 mb-1">Description</h4>
+                <p className="text-slate-600 leading-relaxed whitespace-pre-line">{previewListing.description}</p>
+              </div>
+
+              {/* Action */}
               <div className="flex justify-end gap-2 pt-3 border-t border-slate-100">
                 <button
+                  onClick={() => {
+                    setEditingListing(previewListing);
+                    setPreviewListing(null);
+                  }}
+                  className="px-4 py-2 bg-slate-900 text-white font-bold text-xs rounded-xl hover:bg-slate-800 cursor-pointer flex items-center gap-1.5"
+                >
+                  <Edit3 className="w-3.5 h-3.5" />
+                  <span>Edit Listing</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* COMPREHENSIVE EDIT LISTING MODAL WITH CLOUDINARY IMAGE MANAGER */}
+      {editingListing && (
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-white rounded-2xl w-full max-w-2xl overflow-hidden shadow-2xl animate-in zoom-in-95 duration-150 max-h-[90vh] flex flex-col">
+            <div className="bg-slate-900 text-white p-4 flex items-center justify-between shrink-0">
+              <div className="flex items-center gap-2">
+                <Edit3 className="w-4 h-4 text-orange-400" />
+                <h3 className="font-bold text-sm">Edit Listing &amp; Images: {editingListing.title}</h3>
+              </div>
+              <button
+                onClick={() => {
+                  setEditingListing(null);
+                  setRemovedImages([]);
+                }}
+                className="text-slate-400 hover:text-white p-1 cursor-pointer"
+              >
+                <XCircle className="w-5 h-5 text-slate-300" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveEdit} className="p-6 overflow-y-auto space-y-5 text-xs">
+              {/* IMAGE MANAGEMENT SECTION */}
+              <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-3">
+                <div className="flex items-center justify-between">
+                  <h4 className="font-bold text-slate-900 text-xs flex items-center gap-1.5">
+                    <Upload className="w-4 h-4 text-orange-500" />
+                    <span>Listing Images &amp; Cloudinary Uploads</span>
+                  </h4>
+                  <label className="bg-slate-900 hover:bg-slate-800 text-white font-bold text-[11px] px-3 py-1.5 rounded-lg transition-colors cursor-pointer flex items-center gap-1">
+                    {isUploadingImage ? <Loader2 className="w-3.5 h-3.5 animate-spin text-orange-400" /> : <Plus className="w-3.5 h-3.5 text-white" />}
+                    <span>Upload New Photo</span>
+                    <input type="file" accept="image/*" onChange={handleImageUpload} disabled={isUploadingImage} className="hidden" />
+                  </label>
+                </div>
+
+                <p className="text-[11px] text-slate-500">
+                  Deleting a picture here marks it to be permanently removed from Cloudinary when you save changes.
+                </p>
+
+                <div className="grid grid-cols-3 sm:grid-cols-4 gap-3 pt-1">
+                  {/* Main Image */}
+                  {editingListing.image && (
+                    <div className="relative group rounded-xl overflow-hidden border-2 border-orange-500 bg-white aspect-square shadow-xs">
+                      <img src={editingListing.image} alt="Main" className="w-full h-full object-cover" />
+                      <span className="absolute top-1 left-1 bg-orange-500 text-white text-[9px] font-extrabold px-1.5 py-0.5 rounded">
+                        MAIN
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveImage(editingListing.image)}
+                        className="absolute top-1 right-1 bg-red-600 hover:bg-red-700 text-white p-1 rounded-full shadow-md transition-all cursor-pointer opacity-90 hover:scale-110"
+                        title="Remove Image"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Gallery Images */}
+                  {editingListing.gallery &&
+                    editingListing.gallery
+                      .filter((url) => url !== editingListing.image)
+                      .map((url, idx) => (
+                        <div key={idx} className="relative group rounded-xl overflow-hidden border border-slate-200 bg-white aspect-square shadow-xs">
+                          <img src={url} alt={`Gallery ${idx}`} className="w-full h-full object-cover" />
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveImage(url)}
+                            className="absolute top-1 right-1 bg-red-600 hover:bg-red-700 text-white p-1 rounded-full shadow-md transition-all cursor-pointer opacity-90 hover:scale-110"
+                            title="Remove Image"
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        </div>
+                      ))}
+                </div>
+              </div>
+
+              {/* BASIC DETAILS */}
+              <div className="space-y-3">
+                <h4 className="font-bold text-slate-900 border-b border-slate-100 pb-1">Basic Information</h4>
+                <div>
+                  <label className="block font-bold text-slate-700 mb-1">Listing Title</label>
+                  <input
+                    type="text"
+                    required
+                    value={editingListing.title}
+                    onChange={(e) => setEditingListing({ ...editingListing, title: e.target.value })}
+                    className="w-full p-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-slate-400 font-medium"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block font-bold text-slate-700 mb-1">Category</label>
+                    <select
+                      value={editingListing.category}
+                      onChange={(e) =>
+                        setEditingListing({
+                          ...editingListing,
+                          category: e.target.value as 'cars_vehicles' | 'heavy_machinery' | 'properties',
+                        })
+                      }
+                      className="w-full p-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-slate-400 bg-white"
+                    >
+                      <option value="heavy_machinery">Heavy Machinery</option>
+                      <option value="cars_vehicles">Cars &amp; Vehicles</option>
+                      <option value="properties">Properties</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block font-bold text-slate-700 mb-1">Sub-Category</label>
+                    <input
+                      type="text"
+                      value={editingListing.subCategory || ''}
+                      onChange={(e) => setEditingListing({ ...editingListing, subCategory: e.target.value })}
+                      className="w-full p-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-slate-400"
+                      placeholder="e.g. Excavator, SUV, Apartment"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-3 gap-3">
+                  <div>
+                    <label className="block font-bold text-slate-700 mb-1">Price (GH₵)</label>
+                    <input
+                      type="number"
+                      value={editingListing.price}
+                      onChange={(e) => {
+                        const val = parseFloat(e.target.value) || 0;
+                        setEditingListing({
+                          ...editingListing,
+                          price: val,
+                          priceFormatted: `GH₵ ${val.toLocaleString()}`,
+                        });
+                      }}
+                      className="w-full p-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-slate-400 font-bold"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block font-bold text-slate-700 mb-1">Price USD (Display)</label>
+                    <input
+                      type="text"
+                      value={editingListing.priceUsd || ''}
+                      onChange={(e) => setEditingListing({ ...editingListing, priceUsd: e.target.value })}
+                      className="w-full p-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-slate-400"
+                      placeholder="e.g. USD 120,000"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block font-bold text-slate-700 mb-1">Status</label>
+                    <select
+                      value={editingListing.status || 'published'}
+                      onChange={(e) =>
+                        setEditingListing({
+                          ...editingListing,
+                          status: e.target.value as 'published' | 'draft' | 'pending' | 'rejected',
+                        })
+                      }
+                      className="w-full p-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-slate-400 bg-white"
+                    >
+                      <option value="published">Live (Published)</option>
+                      <option value="draft">Draft (Hidden)</option>
+                      <option value="rejected">Rejected</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              {/* LOCATION & SPECS */}
+              <div className="space-y-3">
+                <h4 className="font-bold text-slate-900 border-b border-slate-100 pb-1">Location &amp; Specifications</h4>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block font-bold text-slate-700 mb-1">Location</label>
+                    <input
+                      type="text"
+                      value={editingListing.location}
+                      onChange={(e) => setEditingListing({ ...editingListing, location: e.target.value })}
+                      className="w-full p-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-slate-400"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block font-bold text-slate-700 mb-1">City / Region</label>
+                    <input
+                      type="text"
+                      value={editingListing.city}
+                      onChange={(e) => setEditingListing({ ...editingListing, city: e.target.value })}
+                      className="w-full p-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-slate-400"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-3 gap-3">
+                  <div>
+                    <label className="block font-bold text-slate-700 mb-1">Condition</label>
+                    <input
+                      type="text"
+                      value={editingListing.condition || ''}
+                      onChange={(e) => setEditingListing({ ...editingListing, condition: e.target.value })}
+                      className="w-full p-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-slate-400"
+                      placeholder="e.g. Excellent Condition"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block font-bold text-slate-700 mb-1">Make / Brand</label>
+                    <input
+                      type="text"
+                      value={editingListing.make || ''}
+                      onChange={(e) => setEditingListing({ ...editingListing, make: e.target.value })}
+                      className="w-full p-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-slate-400"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block font-bold text-slate-700 mb-1">Model / Year</label>
+                    <input
+                      type="text"
+                      value={editingListing.model || ''}
+                      onChange={(e) => setEditingListing({ ...editingListing, model: e.target.value })}
+                      className="w-full p-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-slate-400"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* DESCRIPTION */}
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">Full Description</label>
+                <textarea
+                  rows={4}
+                  value={editingListing.description}
+                  onChange={(e) => setEditingListing({ ...editingListing, description: e.target.value })}
+                  className="w-full p-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-slate-400 resize-y"
+                />
+              </div>
+
+              {/* SAVE / CANCEL */}
+              <div className="flex justify-end gap-2 pt-3 border-t border-slate-100 shrink-0">
+                <button
                   type="button"
-                  onClick={() => setEditingListing(null)}
+                  onClick={() => {
+                    setEditingListing(null);
+                    setRemovedImages([]);
+                  }}
                   className="px-4 py-2 bg-slate-100 text-slate-700 font-bold rounded-xl hover:bg-slate-200 cursor-pointer"
                 >
                   Cancel
                 </button>
-                <button type="submit" className="px-4 py-2 bg-slate-900 text-white font-bold rounded-xl hover:bg-slate-800 cursor-pointer">
-                  Save Changes
+                <button type="submit" className="px-5 py-2 bg-slate-900 text-white font-bold rounded-xl hover:bg-slate-800 cursor-pointer">
+                  Save Changes &amp; Sync Images
                 </button>
               </div>
             </form>

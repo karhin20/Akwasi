@@ -548,9 +548,6 @@ export const ListingDetailScreen: React.FC<ListingDetailScreenProps> = ({
                     AkwasiJob
                     <CheckCircle2 className="w-4 h-4 text-blue-500 shrink-0" />
                   </div>
-                  <div className="text-xs text-slate-500">
-                    {listing.seller?.location || 'Accra, Ghana'}
-                  </div>
                 </div>
               </div>
 
