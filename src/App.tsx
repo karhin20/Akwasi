@@ -14,6 +14,7 @@ import { AccountModal } from './components/AccountModal';
 import { ServicesModal } from './components/ServicesModal';
 import { EnquiryChatWidget } from './components/EnquiryChatWidget';
 import { listings as listingsApi } from './lib/api';
+import { updatePageSEO } from './lib/seo';
 
 function screenToPath(screen: ScreenType, listingId?: string): string {
   switch (screen) {
@@ -104,6 +105,54 @@ export function App() {
       window.removeEventListener('popstate', handleLocationChange);
     };
   }, [listings]);
+
+  // Synchronize document SEO metadata dynamically on route / listing change
+  useEffect(() => {
+    if (currentScreen === 'machinery') {
+      updatePageSEO({
+        title: 'Heavy Machinery & Construction Equipment in Ghana | AkwasiJob',
+        description: 'Buy and rent Caterpillar excavators, wheel loaders, bulldozers, rollers, and cranes across Ghana. Inspected and verified on AkwasiJob.',
+        canonicalUrl: 'https://akwasijob.com/machinery',
+      });
+    } else if (currentScreen === 'vehicles') {
+      updatePageSEO({
+        title: 'Commercial Vehicles, Tipper Trucks & Pickups in Ghana | AkwasiJob',
+        description: 'Explore commercial vehicles, tipper trucks, Mercedes Actros, Sinotruk Howo, MAN diesel, and 4x4 double cabin pickups in Accra & Ghana.',
+        canonicalUrl: 'https://akwasijob.com/vehicles',
+      });
+    } else if (currentScreen === 'properties') {
+      updatePageSEO({
+        title: 'Commercial & Residential Properties for Sale in Accra, Ghana | AkwasiJob',
+        description: 'Luxury executive townhouses, apartments, industrial warehouses, and development land in Ridge, Airport Residential, and Accra.',
+        canonicalUrl: 'https://akwasijob.com/properties',
+      });
+    } else if (currentScreen === 'services') {
+      updatePageSEO({
+        title: 'Machinery Inspection, Heavy Haulage & Fumigation Services in Ghana | AkwasiJob',
+        description: 'Certified technical equipment inspection, heavy equipment lowbed haulage across Ghana, and pest control & fumigation services.',
+        canonicalUrl: 'https://akwasijob.com/services',
+      });
+    } else if (currentScreen === 'listing_detail' && selectedListing) {
+      updatePageSEO({
+        title: `${selectedListing.title} | AkwasiJob Ghana`,
+        description: `${selectedListing.title} in ${selectedListing.location}. Price: ${selectedListing.priceFormatted || selectedListing.price}. ${selectedListing.description ? selectedListing.description.slice(0, 150) : ''}`,
+        canonicalUrl: `https://akwasijob.com/listing/${selectedListing.id}`,
+        ogImage: selectedListing.image,
+      });
+    } else if (currentScreen === 'admin') {
+      updatePageSEO({
+        title: 'Admin Portal | AkwasiJob Marketplace',
+        description: 'AkwasiJob administrative management portal.',
+        canonicalUrl: 'https://akwasijob.com/admin',
+      });
+    } else {
+      updatePageSEO({
+        title: 'AkwasiJob Marketplace | Heavy Machinery, Commercial Trucks & Properties in Ghana',
+        description: "Ghana's premier marketplace for heavy machinery, commercial properties, and commercial vehicles. Buy and rent excavators, tipper trucks, and properties in Accra and across Ghana.",
+        canonicalUrl: 'https://akwasijob.com/',
+      });
+    }
+  }, [currentScreen, selectedListing]);
 
   const navigate = useCallback((screen: ScreenType, listingId?: string) => {
     setPreviousScreen(currentScreen);

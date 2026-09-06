@@ -1,18 +1,278 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" dir="ltr">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="icon" type="image/png" href="/favicon.png" />
-    <title>AkwasiJob - Industrial, Real Estate & Vehicles Marketplace</title>
+    
+    <!-- Primary SEO Metadata -->
+    <title>AkwasiJob Marketplace</title>
     <meta name="description" content="Ghana's premier marketplace for heavy machinery, commercial properties, and commercial vehicles." />
+    <meta name="keywords" content="AkwasiJob, heavy machinery Ghana, excavators Accra, bulldozers Ghana, commercial vehicles Ghana, tipper trucks Ghana, MAN diesel, Sinotruk Howo, Caterpillar Ghana, commercial properties Accra, warehouse for rent Ghana, industrial real estate Ghana, equipment inspection Accra" />
+    <meta name="author" content="AkwasiJob Marketplace" />
+    <meta name="publisher" content="AkwasiJob" />
+    <link rel="canonical" href="https://akwasijob.com/" />
+
+    <!-- Search Engine Crawlers Directives -->
+    <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1" />
+    <meta name="googlebot" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1" />
+    <meta name="bingbot" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1" />
+
+    <!-- Geographic & Regional Targeting (Ghana Focus) -->
+    <meta name="geo.region" content="GH" />
+    <meta name="geo.placename" content="Accra, Greater Accra, Ghana" />
+    <meta name="geo.position" content="5.6037;-0.1870" />
+    <meta name="ICBM" content="5.6037, -0.1870" />
+    <meta name="language" content="English" />
+
+    <!-- Open Graph / Facebook / WhatsApp / LinkedIn Preview Tags -->
+    <meta property="og:site_name" content="AkwasiJob Marketplace" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://akwasijob.com/" />
+    <meta property="og:title" content="AkwasiJob Marketplace" />
+    <meta property="og:description" content="Ghana's premier marketplace for heavy machinery, commercial properties, and commercial vehicles." />
+    <meta property="og:image" content="https://images.unsplash.com/photo-1579829366248-204fe8413f31?auto=format&fit=crop&w=1200&q=80" />
+    <meta property="og:image:secure_url" content="https://images.unsplash.com/photo-1579829366248-204fe8413f31?auto=format&fit=crop&w=1200&q=80" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="AkwasiJob Heavy Machinery, Commercial Trucks, and Properties Marketplace in Ghana" />
+    <meta property="og:locale" content="en_GH" />
+
+    <!-- Twitter Card Meta Tags -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:domain" content="akwasijob.com" />
+    <meta name="twitter:url" content="https://akwasijob.com/" />
+    <meta name="twitter:title" content="AkwasiJob Marketplace" />
+    <meta name="twitter:description" content="Ghana's premier marketplace for heavy machinery, commercial properties, and commercial vehicles." />
+    <meta name="twitter:image" content="https://images.unsplash.com/photo-1579829366248-204fe8413f31?auto=format&fit=crop&w=1200&q=80" />
+
+    <!-- Search Engine Verification Meta Tag Placeholders (Replace token when claiming in Google Search Console / Bing) -->
+    <!-- <meta name="google-site-verification" content="YOUR_GOOGLE_SEARCH_CONSOLE_VERIFICATION_CODE" /> -->
+    <!-- <meta name="msvalidate.01" content="YOUR_BING_WEBMASTER_VERIFICATION_CODE" /> -->
+
+    <!-- Favicon and App Manifest -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/favicon.svg" />
+    <link rel="manifest" href="/site.webmanifest" />
+    <meta name="theme-color" content="#f97316" />
+
+    <!-- Typography Fonts Preconnect -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Montserrat:wght@500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Schema.org Structured Data (JSON-LD) for Search Engine Rich Snippets -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "WebSite",
+          "@id": "https://akwasijob.com/#website",
+          "url": "https://akwasijob.com/",
+          "name": "AkwasiJob Marketplace",
+          "description": "Ghana's premier marketplace for heavy machinery, commercial properties, and commercial vehicles.",
+          "inLanguage": "en-GH",
+          "potentialAction": {
+            "@type": "SearchAction",
+            "target": {
+              "@type": "EntryPoint",
+              "urlTemplate": "https://akwasijob.com/vehicles?q={search_term_string}"
+            },
+            "query-input": "required name=search_term_string"
+          }
+        },
+        {
+          "@type": "Organization",
+          "@id": "https://akwasijob.com/#organization",
+          "name": "AkwasiJob",
+          "url": "https://akwasijob.com/",
+          "logo": {
+            "@type": "ImageObject",
+            "url": "https://akwasijob.com/favicon.svg"
+          },
+          "description": "Ghana's trusted digital marketplace specializing in heavy construction machinery, commercial fleet trucks, industrial warehouses, and property investments.",
+          "telephone": "+233241234567",
+          "email": "support@akwasijob.com",
+          "address": {
+            "@type": "PostalAddress",
+            "addressLocality": "Accra",
+            "addressRegion": "Greater Accra",
+            "addressCountry": "GH"
+          },
+          "areaServed": {
+            "@type": "Country",
+            "name": "Ghana"
+          }
+        },
+        {
+          "@type": "LocalBusiness",
+          "@id": "https://akwasijob.com/#localbusiness",
+          "name": "AkwasiJob Marketplace Ghana",
+          "image": "https://images.unsplash.com/photo-1579829366248-204fe8413f31?auto=format&fit=crop&w=1200&q=80",
+          "telephone": "+233241234567",
+          "email": "support@akwasijob.com",
+          "priceRange": "GH₵₵₵",
+          "address": {
+            "@type": "PostalAddress",
+            "streetAddress": "Spintex Road / Airport Residential",
+            "addressLocality": "Accra",
+            "addressRegion": "Greater Accra",
+            "postalCode": "00233",
+            "addressCountry": "GH"
+          },
+          "geo": {
+            "@type": "GeoCoordinates",
+            "latitude": 5.6037,
+            "longitude": -0.1870
+          },
+          "openingHoursSpecification": [
+            {
+              "@type": "OpeningHoursSpecification",
+              "dayOfWeek": [
+                "Monday",
+                "Tuesday",
+                "Wednesday",
+                "Thursday",
+                "Friday",
+                "Saturday"
+              ],
+              "opens": "08:00",
+              "closes": "18:00"
+            }
+          ]
+        },
+        {
+          "@type": "BreadcrumbList",
+          "@id": "https://akwasijob.com/#breadcrumbs",
+          "itemListElement": [
+            {
+              "@type": "ListItem",
+              "position": 1,
+              "name": "Home",
+              "item": "https://akwasijob.com/"
+            },
+            {
+              "@type": "ListItem",
+              "position": 2,
+              "name": "Heavy Machinery",
+              "item": "https://akwasijob.com/machinery"
+            },
+            {
+              "@type": "ListItem",
+              "position": 3,
+              "name": "Commercial Vehicles",
+              "item": "https://akwasijob.com/vehicles"
+            },
+            {
+              "@type": "ListItem",
+              "position": 4,
+              "name": "Commercial Properties",
+              "item": "https://akwasijob.com/properties"
+            },
+            {
+              "@type": "ListItem",
+              "position": 5,
+              "name": "Services",
+              "item": "https://akwasijob.com/services"
+            }
+          ]
+        },
+        {
+          "@type": "FAQPage",
+          "@id": "https://akwasijob.com/#faq",
+          "mainEntity": [
+            {
+              "@type": "Question",
+              "name": "What machinery and vehicles are available on AkwasiJob Ghana?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "AkwasiJob features certified heavy machinery (hydraulic excavators, wheel loaders, bulldozers, rollers, cranes), commercial vehicles (tipper trucks, MAN diesels, Sinotruk Howo, tractor heads, 4x4 pickups), and prime commercial and residential properties in Accra, Tema, and across Ghana."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "How can I buy or rent heavy equipment on AkwasiJob?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Browse listings on akwasijob.com/machinery or akwasijob.com/vehicles, review verified technical specifications and inspection reports, and connect directly with verified sellers via phone or WhatsApp. You can also request an independent mechanical inspection."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "Does AkwasiJob provide equipment inspection, haulage, and fumigation?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Yes, AkwasiJob offers certified technical machinery inspections, lowbed heavy equipment haulage across Ghana, fumigation and pest control services, and property management."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "How can I post an equipment or property listing on AkwasiJob?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Click 'Post Listing' on the AkwasiJob homepage, submit your equipment or property details, photos, and location, or contact our support team at support@akwasijob.com to list your commercial asset."
+              }
+            }
+          ]
+        },
+        {
+          "@type": "ItemList",
+          "@id": "https://akwasijob.com/#categories",
+          "name": "AkwasiJob Marketplace Categories",
+          "itemListElement": [
+            {
+              "@type": "SiteNavigationElement",
+              "position": 1,
+              "name": "Heavy Machinery",
+              "description": "Hydraulic excavators, bulldozers, wheel loaders, compactors, and cranes for sale & rental in Ghana.",
+              "url": "https://akwasijob.com/machinery"
+            },
+            {
+              "@type": "SiteNavigationElement",
+              "position": 2,
+              "name": "Commercial Vehicles & Tipper Trucks",
+              "description": "Tipper trucks, heavy haulage tractors, flatbeds, pickups, and commercial fleet vehicles in Ghana.",
+              "url": "https://akwasijob.com/vehicles"
+            },
+            {
+              "@type": "SiteNavigationElement",
+              "position": 3,
+              "name": "Commercial Properties & Real Estate",
+              "description": "Prime residential townhouses, executive apartments, industrial warehouses, and development land across Accra.",
+              "url": "https://akwasijob.com/properties"
+            },
+            {
+              "@type": "SiteNavigationElement",
+              "position": 4,
+              "name": "Machinery Inspection & Haulage Services",
+              "description": "Certified mechanical inspections, heavy equipment lowbed haulage, and fumigation services in Ghana.",
+              "url": "https://akwasijob.com/services"
+            }
+          ]
+        }
+      ]
+    }
+    </script>
   </head>
   <body class="bg-[#f8f9fb] text-[#191c1e] font-sans antialiased selection:bg-[#f97316] selection:text-white">
+    <!-- Crawlable Fallback for Search Engine Bots & Non-JS Browsers -->
+    <noscript>
+      <header style="padding: 24px; background: #0f172a; color: white;">
+        <h1>AkwasiJob Marketplace - Ghana's Heavy Machinery, Commercial Trucks &amp; Properties</h1>
+        <p>Ghana's leading online marketplace for Caterpillar excavators, tipper trucks, tractor heads, bulldozers, luxury townhouses, and industrial warehouses in Accra, Tema, Kumasi, and Takoradi.</p>
+        <nav aria-label="AkwasiJob Categories">
+          <ul>
+            <li><a href="https://akwasijob.com/machinery">Heavy Machinery in Ghana</a></li>
+            <li><a href="https://akwasijob.com/vehicles">Commercial Vehicles &amp; Tipper Trucks</a></li>
+            <li><a href="https://akwasijob.com/properties">Properties &amp; Industrial Real Estate Accra</a></li>
+            <li><a href="https://akwasijob.com/services">Machinery Inspection, Haulage &amp; Fumigation Services</a></li>
+          </ul>
+        </nav>
+        <p>Phone: +233 24 123 4567 | Email: support@akwasijob.com | Location: Accra, Ghana</p>
+      </header>
+    </noscript>
+
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
-

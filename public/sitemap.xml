@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
+
+  <!-- Homepage -->
+  <url>
+    <loc>https://akwasijob.com/</loc>
+    <lastmod>2026-09-06</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+    <image:image>
+      <image:loc>https://images.unsplash.com/photo-1579829366248-204fe8413f31?auto=format&amp;fit=crop&amp;w=1200&amp;q=80</image:loc>
+      <image:title>AkwasiJob Marketplace Ghana - Heavy Machinery, Commercial Trucks and Properties</image:title>
+      <image:caption>Ghana's premier online marketplace for buying and renting heavy machinery, trucks, and industrial properties.</image:caption>
+    </image:image>
+  </url>
+
+  <!-- Heavy Machinery Category (Clean URL) -->
+  <url>
+    <loc>https://akwasijob.com/machinery</loc>
+    <lastmod>2026-09-06</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+    <image:image>
+      <image:loc>https://lh3.googleusercontent.com/aida-public/AB6AXuDknMVfyClBf-vB-HWarpPpQLMLg5SPvNFl25AIrgnHmpjIvCX7IPiyLSS0CXMpgxGN360lJpWl73LpdepCDlPJsgmQ2NwnjTeZowPpYRDBo9xmM6zOV4P8hn9FY_qur27K3lTmkM20PfgPeUvTzss36RiXzLiRsb7Moezy1FU_xyIhxZqs1BnpRPOp8SViQYiGa21yX2ssCWzjdJZZiEEmJQWAP70cNkGjMlGoboWkwH7Nt8d2vZ2vhA</image:loc>
+      <image:title>Caterpillar Excavators and Heavy Construction Equipment in Ghana</image:title>
+    </image:image>
+  </url>
+
+  <!-- Commercial Vehicles & Tipper Trucks Category (Clean URL) -->
+  <url>
+    <loc>https://akwasijob.com/vehicles</loc>
+    <lastmod>2026-09-06</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+    <image:image>
+      <image:loc>https://lh3.googleusercontent.com/aida-public/AB6AXuAM8hUM9LISwa4gDaRglisyBXrckRjJDsS-qB80xplYHXFm3mtL7g4MFtKTys63VxbRvToMdKln2DhfUbkYZAM1sGFhOZZ4WfL0EYsVm2LEeiRtMTuyI28vvDyxkZ2XEov_5jCNo5cO1beimegAuQ77P4Xx6LWkeRvakt0OuGO7qeOgnaa1XUQ_ASus3ZnKbp9ajnt4GxlWPgz56wMxOPipsBarzzguBgGcqeTTDe0QznbJtzaLT_70kQ</image:loc>
+      <image:title>Mercedes-Benz Actros Tipper Trucks and Haulage Tractor Heads in Ghana</image:title>
+    </image:image>
+  </url>
+
+  <!-- Commercial & Residential Properties Category (Clean URL) -->
+  <url>
+    <loc>https://akwasijob.com/properties</loc>
+    <lastmod>2026-09-06</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+    <image:image>
+      <image:loc>https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&amp;fit=crop&amp;w=1200&amp;q=80</image:loc>
+      <image:title>Executive Townhouses and Commercial Real Estate for Sale in Accra, Ghana</image:title>
+    </image:image>
+  </url>
+
+  <!-- Inspection, Haulage & Fumigation Services (Clean URL) -->
+  <url>
+    <loc>https://akwasijob.com/services</loc>
+    <lastmod>2026-09-06</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://akwasijob.com/fumigation.jpg</image:loc>
+      <image:title>Certified Fumigation, Machinery Inspection, and Heavy Haulage in Ghana</image:title>
+    </image:image>
+  </url>
+
+  <!-- Featured Listing: 3 Bedroom Townhouse Ridge Accra -->
+  <url>
+    <loc>https://akwasijob.com/listing/prop-ridge-townhouse-3bed</loc>
+    <lastmod>2026-09-06</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&amp;fit=crop&amp;w=1200&amp;q=80</image:loc>
+      <image:title>3 Bedroom Luxury Townhouse for Sale in Ridge, Accra, Ghana</image:title>
+    </image:image>
+  </url>
+
+  <!-- Featured Listing: 2022 Caterpillar 320 GC Excavator -->
+  <url>
+    <loc>https://akwasijob.com/listing/mach-cat-320gc-2022</loc>
+    <lastmod>2026-09-06</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://lh3.googleusercontent.com/aida-public/AB6AXuDknMVfyClBf-vB-HWarpPpQLMLg5SPvNFl25AIrgnHmpjIvCX7IPiyLSS0CXMpgxGN360lJpWl73LpdepCDlPJsgmQ2NwnjTeZowPpYRDBo9xmM6zOV4P8hn9FY_qur27K3lTmkM20PfgPeUvTzss36RiXzLiRsb7Moezy1FU_xyIhxZqs1BnpRPOp8SViQYiGa21yX2ssCWzjdJZZiEEmJQWAP70cNkGjMlGoboWkwH7Nt8d2vZ2vhA</image:loc>
+      <image:title>2022 Caterpillar 320 GC Hydraulic Excavator for Sale at Tema Port, Ghana</image:title>
+    </image:image>
+  </url>
+
+  <!-- Featured Listing: 2021 Toyota Hilux Double Cabin -->
+  <url>
+    <loc>https://akwasijob.com/listing/veh-toyota-hilux-2021</loc>
+    <lastmod>2026-09-06</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://lh3.googleusercontent.com/aida-public/AB6AXuCmXWWbFXcsf0jPWFCpq-y26DsKHue0b36HGXfKv1clsCLFGmZdkv3HgIXrzEBwqcvvT9h-D8NimdTMoq7tVA9OT7B-WAr71SVoIUmw0q4Aaxgx_8BmQo1IMYPchw8HZo4c836dMzfT9OsxS9By6MEUVGmz4mtZnuRYYObCX0XEuRK48QPdQc5625iSAcs_yqqGzeqHfL5_95Rdi1s_a3YB9jAG6-LRpwM5oW_f3QfazUlymZzElylM7g</image:loc>
+      <image:title>2021 Toyota Hilux Double Cabin 4x4 for Sale on Spintex Road, Accra</image:title>
+    </image:image>
+  </url>
+
+  <!-- Featured Listing: 2023 Toyota Land Cruiser 300 VXR -->
+  <url>
+    <loc>https://akwasijob.com/listing/veh-lc300-2023</loc>
+    <lastmod>2026-09-06</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?auto=format&amp;fit=crop&amp;w=1200&amp;q=80</image:loc>
+      <image:title>2023 Toyota Land Cruiser 300 VXR Executive SUV in Accra</image:title>
+    </image:image>
+  </url>
+
+  <!-- Featured Listing: 2018 Mercedes-Benz Actros 3344 6x4 Tractor Head -->
+  <url>
+    <loc>https://akwasijob.com/listing/veh-mb-actros-2018</loc>
+    <lastmod>2026-09-06</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://lh3.googleusercontent.com/aida-public/AB6AXuAM8hUM9LISwa4gDaRglisyBXrckRjJDsS-qB80xplYHXFm3mtL7g4MFtKTys63VxbRvToMdKln2DhfUbkYZAM1sGFhOZZ4WfL0EYsVm2LEeiRtMTuyI28vvDyxkZ2XEov_5jCNo5cO1beimegAuQ77P4Xx6LWkeRvakt0OuGO7qeOgnaa1XUQ_ASus3ZnKbp9ajnt4GxlWPgz56wMxOPipsBarzzguBgGcqeTTDe0QznbJtzaLT_70kQ</image:loc>
+      <image:title>2018 Mercedes-Benz Actros 3344 6x4 Prime Mover Tractor Head in Kumasi</image:title>
+    </image:image>
+  </url>
+
+</urlset>

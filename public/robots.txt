@@ -1,0 +1,59 @@
+# Robots.txt for AkwasiJob Marketplace
+# Canonical Domain: https://akwasijob.com
+# Primary Marketplace for Heavy Machinery, Commercial Vehicles, and Industrial Properties in Ghana
+
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /api/
+Disallow: /*?*admin=true
+
+# Googlebot specific directives
+User-agent: Googlebot
+Allow: /
+Allow: /machinery
+Allow: /vehicles
+Allow: /properties
+Allow: /services
+Allow: /listing/
+Disallow: /admin
+Disallow: /api/
+
+# Googlebot Image Crawler
+User-agent: Googlebot-Image
+Allow: /
+Allow: /*.jpg$
+Allow: /*.jpeg$
+Allow: /*.png$
+Allow: /*.webp$
+Allow: /*.avif$
+Allow: /*.jfif$
+Allow: /*.svg$
+
+# Bingbot specific directives
+User-agent: Bingbot
+Allow: /
+Disallow: /admin
+Disallow: /api/
+
+# Other search bots
+User-agent: DuckDuckBot
+Allow: /
+
+User-agent: Applebot
+Allow: /
+
+User-agent: Slurp
+Allow: /
+
+User-agent: Baiduspider
+Allow: /
+
+User-agent: YandexBot
+Allow: /
+
+# Canonical Host
+Host: https://akwasijob.com
+
+# XML Sitemap
+Sitemap: https://akwasijob.com/sitemap.xml

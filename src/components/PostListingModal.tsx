@@ -75,7 +75,7 @@ export const PostListingModal: React.FC<PostListingModalProps> = ({
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files) return;
-    const files = Array.from(e.target.files);
+    const files = Array.from(e.target.files) as File[];
     if (files.length === 0) return;
 
     setSelectedFiles((prev) => [...prev, ...files]);
@@ -91,7 +91,7 @@ export const PostListingModal: React.FC<PostListingModalProps> = ({
 
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
-    const files = Array.from(e.dataTransfer.files || []).filter(file => file.type.startsWith('image/'));
+    const files = (Array.from(e.dataTransfer.files || []) as File[]).filter(file => file.type.startsWith('image/'));
     if (files.length === 0) return;
 
     setSelectedFiles((prev) => [...prev, ...files]);

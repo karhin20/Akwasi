@@ -248,7 +248,7 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files || e.target.files.length === 0 || !editingListing) return;
-    const files = Array.from(e.target.files);
+    const files = Array.from(e.target.files) as File[];
     setIsUploadingImage(true);
 
     try {
