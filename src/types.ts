@@ -77,6 +77,15 @@ export interface EnquiryItem {
   timestamp: string;
 }
 
+export interface SubscriberItem {
+  id: string;
+  phone: string;
+  name?: string;
+  categories: string[];
+  status: 'active' | 'unsubscribed';
+  createdAt: string;
+}
+
 export interface FilterState {
   searchQuery: string;
   category: string; // 'all_vehicles' | 'heavy_machinery' | 'commercial_trucks' or 'all'

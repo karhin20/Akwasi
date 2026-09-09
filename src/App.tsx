@@ -13,6 +13,7 @@ import { PostListingModal } from './components/PostListingModal';
 import { AccountModal } from './components/AccountModal';
 import { ServicesModal } from './components/ServicesModal';
 import { EnquiryChatWidget } from './components/EnquiryChatWidget';
+import { SmsSubscriptionModal } from './components/SmsSubscriptionModal';
 import { listings as listingsApi } from './lib/api';
 import { updatePageSEO } from './lib/seo';
 
@@ -55,6 +56,23 @@ export function App() {
   const [isPostModalOpen, setIsPostModalOpen] = useState(false);
   const [isAccountModalOpen, setIsAccountModalOpen] = useState(false);
   const [activeServiceModal, setActiveServiceModal] = useState<string | null>(null);
+  const [isSmsModalOpen, setIsSmsModalOpen] = useState(false);
+
+  // Trigger SMS alert modal ONLY after user opens and views a listing
+  useEffect(() => {
+    if (currentScreen === 'listing_detail' && selectedListing) {
+      const isSubscribed = localStorage.getItem('akwasi_sms_subscribed');
+      const isDismissed = localStorage.getItem('akwasi_sms_dismissed');
+
+      if (!isSubscribed && !isDismissed) {
+        const timer = setTimeout(() => {
+          setIsSmsModalOpen(true);
+        }, 3500); // Trigger after 3.5 seconds of viewing the listing
+
+        return () => clearTimeout(timer);
+      }
+    }
+  }, [currentScreen, selectedListing]);
 
   // Search & Filter bridge from Home or Header to Screens
   const [searchQuery, setSearchQuery] = useState('');
@@ -289,6 +307,7 @@ export function App() {
             setActiveServiceModal(serviceName);
           }
         }}
+        onOpenSmsModal={() => setIsSmsModalOpen(true)}
       />
 
       {isPostModalOpen && (
@@ -317,6 +336,20 @@ export function App() {
           onClose={() => setActiveServiceModal(null)}
         />
       )}
+
+      <SmsSubscriptionModal
+        isOpen={isSmsModalOpen}
+        onClose={() => setIsSmsModalOpen(false)}
+        initialCategory={
+          selectedListing?.category === 'cars_vehicles'
+            ? 'vehicles'
+            : selectedListing?.category === 'heavy_machinery'
+            ? 'machinery'
+            : selectedListing?.category === 'properties'
+            ? 'properties'
+            : 'all'
+        }
+      />
 
       {/* Floating Enquiries & Chatbot Widget */}
       <EnquiryChatWidget />

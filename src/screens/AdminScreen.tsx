@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { ListingItem, ScreenType, EnquiryItem } from '../types';
+import { ListingItem, ScreenType, EnquiryItem, SubscriberItem } from '../types';
 import {
   ShieldCheck,
   Plus,
@@ -32,8 +32,22 @@ import {
   LogOut,
   Loader2,
   User,
+  Send,
+  Smartphone,
+  Users,
+  CheckSquare,
+  Square,
+  RefreshCw,
 } from 'lucide-react';
-import { auth, authStorage, enquiries as enquiriesApi, listings as listingsApi, media as mediaApi } from '../lib/api';
+import {
+  auth,
+  authStorage,
+  enquiries as enquiriesApi,
+  listings as listingsApi,
+  media as mediaApi,
+  subscriptions as subscriptionsApi,
+  sms as smsApi,
+} from '../lib/api';
 import { Upload, X, MapPin, Calendar, Gauge, Fuel, ShieldAlert } from 'lucide-react';
 
 interface AdminScreenProps {
@@ -61,7 +75,7 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
   const [currentAdminUser, setCurrentAdminUser] = useState<string | null>(null);
 
   // Portal State
-  const [activeTab, setActiveTab] = useState<'overview' | 'listings' | 'enquiries' | 'settings'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'listings' | 'enquiries' | 'subscribers' | 'settings'>('overview');
   const [searchQuery, setSearchQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<string>('all');
@@ -81,13 +95,35 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
   const [enquiryChannelFilter, setEnquiryChannelFilter] = useState<'all' | 'ai_assistant' | 'whatsapp' | 'form'>('all');
   const [expandedLogId, setExpandedLogId] = useState<string | null>(null);
 
+  // Subscribers & SMS State
+  const [subscribersList, setSubscribersList] = useState<SubscriberItem[]>([]);
+  const [subscribersLoading, setSubscribersLoading] = useState(false);
+  const [subscriberCategoryFilter, setSubscriberCategoryFilter] = useState<string>('all');
+  const [subscriberSearchQuery, setSubscriberSearchQuery] = useState('');
+  const [selectedSubscriberIds, setSelectedSubscriberIds] = useState<string[]>([]);
+  const [smsMessage, setSmsMessage] = useState('');
+  const [smsSenderId, setSmsSenderId] = useState('Akwasi');
+  const [isSendingSms, setIsSendingSms] = useState(false);
+
   // System settings state
   const [exchangeRate, setExchangeRate] = useState<number>(11.06);
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
-    setTimeout(() => setToastMessage(null), 3000);
+    setTimeout(() => setToastMessage(null), 3500);
   };
+
+  const fetchSubscribers = useCallback(async () => {
+    try {
+      setSubscribersLoading(true);
+      const data = await subscriptionsApi.getAll();
+      setSubscribersList(data as SubscriberItem[]);
+    } catch (err) {
+      console.error('Failed to fetch subscribers:', err);
+    } finally {
+      setSubscribersLoading(false);
+    }
+  }, []);
 
   // Check auth token on mount
   const checkAuth = useCallback(async () => {
@@ -136,8 +172,100 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
   useEffect(() => {
     if (isAuthenticated) {
       fetchEnquiries();
+      fetchSubscribers();
     }
-  }, [isAuthenticated, fetchEnquiries]);
+  }, [isAuthenticated, fetchEnquiries, fetchSubscribers]);
+
+  const filteredSubscribers = subscribersList.filter((sub) => {
+    const matchesCategory =
+      subscriberCategoryFilter === 'all' ||
+      sub.categories.includes('all') ||
+      sub.categories.includes(subscriberCategoryFilter);
+    const matchesSearch =
+      !subscriberSearchQuery.trim() ||
+      sub.phone.toLowerCase().includes(subscriberSearchQuery.toLowerCase().trim()) ||
+      (sub.name && sub.name.toLowerCase().includes(subscriberSearchQuery.toLowerCase().trim()));
+    return matchesCategory && matchesSearch;
+  });
+
+  const handleDeleteSubscriber = async (id: string) => {
+    if (!window.confirm('Are you sure you want to remove this subscriber?')) return;
+    try {
+      await subscriptionsApi.delete(id);
+      showToast('Subscriber removed');
+      fetchSubscribers();
+    } catch {
+      showToast('Failed to delete subscriber');
+    }
+  };
+
+  const handleToggleSubscriberStatus = async (id: string, currentStatus: 'active' | 'unsubscribed') => {
+    try {
+      const nextStatus = currentStatus === 'active' ? 'unsubscribed' : 'active';
+      await subscriptionsApi.toggleStatus(id, nextStatus);
+      showToast(`Subscriber status updated to ${nextStatus}`);
+      fetchSubscribers();
+    } catch {
+      showToast('Failed to update status');
+    }
+  };
+
+  const handleToggleSelectSubscriber = (id: string) => {
+    setSelectedSubscriberIds((prev) =>
+      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
+    );
+  };
+
+  const handleSelectAllSubscribers = () => {
+    const activeSubscribers = filteredSubscribers.filter((s) => s.status === 'active');
+    if (selectedSubscriberIds.length === activeSubscribers.length) {
+      setSelectedSubscriberIds([]);
+    } else {
+      setSelectedSubscriberIds(activeSubscribers.map((s) => s.id));
+    }
+  };
+
+  const handleSendSmsBroadcast = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!smsMessage.trim()) {
+      showToast('Please enter an SMS message body.');
+      return;
+    }
+
+    let targetSubscribers = subscribersList.filter((s) => s.status === 'active');
+
+    if (selectedSubscriberIds.length > 0) {
+      targetSubscribers = targetSubscribers.filter((s) => selectedSubscriberIds.includes(s.id));
+    } else if (subscriberCategoryFilter !== 'all') {
+      targetSubscribers = targetSubscribers.filter(
+        (s) => s.categories.includes('all') || s.categories.includes(subscriberCategoryFilter)
+      );
+    }
+
+    if (targetSubscribers.length === 0) {
+      showToast('No active recipients match your target criteria.');
+      return;
+    }
+
+    const recipientPhones = targetSubscribers.map((s) => s.phone);
+
+    try {
+      setIsSendingSms(true);
+      const res = await smsApi.send(recipientPhones, smsMessage.trim(), smsSenderId);
+
+      if (res.success) {
+        const modeLabel = res.simulated ? '[Simulation Mode]' : '[Arkesel Live]';
+        showToast(`✅ ${modeLabel} SMS sent to ${res.count} recipient(s)!`);
+        setSmsMessage('');
+        setSelectedSubscriberIds([]);
+      }
+    } catch (err: unknown) {
+      const errorMsg = err instanceof Error ? err.message : 'Failed to dispatch SMS via Arkesel';
+      showToast(`❌ SMS Error: ${errorMsg}`);
+    } finally {
+      setIsSendingSms(false);
+    }
+  };
 
   // Handle Login
   const handleLogin = async (e: React.FormEvent) => {
@@ -537,6 +665,18 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
           >
             <Clock className="w-4 h-4 text-slate-500" />
             <span>Customer Enquiries ({enquiriesList.length})</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('subscribers')}
+            className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap flex items-center gap-2 ${
+              activeTab === 'subscribers'
+                ? 'bg-slate-900 text-white shadow-xs'
+                : 'bg-white text-slate-600 hover:bg-slate-200/70 border border-slate-200'
+            }`}
+          >
+            <Smartphone className="w-4 h-4 text-orange-500" />
+            <span>SMS Alerts &amp; Subscribers ({subscribersList.length})</span>
           </button>
 
           <button
@@ -955,7 +1095,304 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
           </div>
         )}
 
-        {/* TAB 4: SYSTEM CONFIG */}
+        {/* TAB 4: SMS ALERTS & SUBSCRIBERS */}
+        {activeTab === 'subscribers' && (
+          <div className="space-y-6">
+            {/* KPI Summary Cards */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+              <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs flex items-center justify-between">
+                <div>
+                  <span className="text-xs font-bold uppercase text-slate-400">Total Subscribers</span>
+                  <div className="text-2xl font-black text-slate-900 mt-1">{subscribersList.length}</div>
+                </div>
+                <div className="w-12 h-12 bg-orange-100 text-orange-600 rounded-2xl flex items-center justify-center">
+                  <Users className="w-6 h-6" />
+                </div>
+              </div>
+
+              <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs flex items-center justify-between">
+                <div>
+                  <span className="text-xs font-bold uppercase text-slate-400">Active Mobile Numbers</span>
+                  <div className="text-2xl font-black text-emerald-600 mt-1">
+                    {subscribersList.filter((s) => s.status === 'active').length}
+                  </div>
+                </div>
+                <div className="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-2xl flex items-center justify-center">
+                  <Smartphone className="w-6 h-6" />
+                </div>
+              </div>
+
+              <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs flex items-center justify-between">
+                <div>
+                  <span className="text-xs font-bold uppercase text-slate-400">Arkesel Sender ID</span>
+                  <div className="text-xl font-bold text-slate-900 mt-1 font-mono">{smsSenderId || 'Akwasi'}</div>
+                </div>
+                <div className="w-12 h-12 bg-blue-100 text-blue-600 rounded-2xl flex items-center justify-center">
+                  <Send className="w-6 h-6" />
+                </div>
+              </div>
+            </div>
+
+            {/* Split Grid: Subscribers Table + SMS Composer */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* Left Column: Subscribers Management (2 cols) */}
+              <div className="lg:col-span-2 bg-white rounded-2xl border border-slate-200 p-6 shadow-xs space-y-5">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200 pb-4">
+                  <div>
+                    <h3 className="font-bold text-slate-900 text-base flex items-center gap-2">
+                      <Users className="w-5 h-5 text-orange-500" />
+                      <span>Subscribed Phone Numbers</span>
+                    </h3>
+                    <p className="text-xs text-slate-500">Users who opted in for mobile SMS deal updates</p>
+                  </div>
+
+                  <button
+                    onClick={() => fetchSubscribers()}
+                    className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 transition-colors text-xs font-bold flex items-center gap-1.5 self-start sm:self-auto cursor-pointer"
+                    title="Refresh List"
+                  >
+                    <RefreshCw className={`w-3.5 h-3.5 ${subscribersLoading ? 'animate-spin' : ''}`} />
+                    <span>Refresh</span>
+                  </button>
+                </div>
+
+                {/* Filters & Search */}
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+                  <div className="relative flex-1">
+                    <Search className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
+                    <input
+                      type="text"
+                      placeholder="Search phone number or name..."
+                      value={subscriberSearchQuery}
+                      onChange={(e) => setSubscriberSearchQuery(e.target.value)}
+                      className="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-900 outline-none focus:border-orange-500"
+                    />
+                  </div>
+
+                  <div className="flex items-center gap-1 text-xs overflow-x-auto">
+                    {[
+                      { id: 'all', label: 'All' },
+                      { id: 'vehicles', label: 'Vehicles' },
+                      { id: 'machinery', label: 'Machinery' },
+                      { id: 'properties', label: 'Properties' },
+                    ].map((cat) => (
+                      <button
+                        key={cat.id}
+                        onClick={() => setSubscriberCategoryFilter(cat.id)}
+                        className={`px-3 py-1.5 rounded-lg font-bold transition-all cursor-pointer whitespace-nowrap ${
+                          subscriberCategoryFilter === cat.id
+                            ? 'bg-slate-900 text-white'
+                            : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                        }`}
+                      >
+                        {cat.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Table */}
+                {subscribersLoading ? (
+                  <div className="py-12 text-center text-slate-500 text-xs">
+                    <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 text-slate-400" />
+                    Loading subscriber records...
+                  </div>
+                ) : filteredSubscribers.length === 0 ? (
+                  <div className="py-12 text-center text-slate-500 text-xs border border-dashed border-slate-200 rounded-2xl">
+                    No matching subscribers found in database.
+                  </div>
+                ) : (
+                  <div className="overflow-x-auto border border-slate-200 rounded-xl">
+                    <table className="w-full text-left text-xs text-slate-700">
+                      <thead className="bg-slate-50 text-slate-500 uppercase font-bold text-[10px] border-b border-slate-200">
+                        <tr>
+                          <th className="p-3 w-10 text-center">
+                            <button
+                              onClick={handleSelectAllSubscribers}
+                              className="text-slate-500 hover:text-slate-900 cursor-pointer"
+                              title="Select All Active"
+                            >
+                              {selectedSubscriberIds.length > 0 ? (
+                                <CheckSquare className="w-4 h-4 text-orange-500" />
+                              ) : (
+                                <Square className="w-4 h-4" />
+                              )}
+                            </button>
+                          </th>
+                          <th className="p-3">Subscriber</th>
+                          <th className="p-3">Categories</th>
+                          <th className="p-3">Date Joined</th>
+                          <th className="p-3">Status</th>
+                          <th className="p-3 text-right">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100">
+                        {filteredSubscribers.map((sub) => {
+                          const isSelected = selectedSubscriberIds.includes(sub.id);
+                          return (
+                            <tr key={sub.id} className={`hover:bg-slate-50/80 transition-colors ${isSelected ? 'bg-orange-50/50' : ''}`}>
+                              <td className="p-3 text-center">
+                                <button
+                                  onClick={() => handleToggleSelectSubscriber(sub.id)}
+                                  disabled={sub.status !== 'active'}
+                                  className="text-slate-400 hover:text-slate-900 disabled:opacity-30 cursor-pointer"
+                                >
+                                  {isSelected ? (
+                                    <CheckSquare className="w-4 h-4 text-orange-600" />
+                                  ) : (
+                                    <Square className="w-4 h-4" />
+                                  )}
+                                </button>
+                              </td>
+                              <td className="p-3">
+                                <div className="font-bold text-slate-900 font-mono text-xs">{sub.phone}</div>
+                                {sub.name && <div className="text-[11px] text-slate-500">{sub.name}</div>}
+                              </td>
+                              <td className="p-3">
+                                <div className="flex flex-wrap gap-1">
+                                  {sub.categories.map((c) => (
+                                    <span key={c} className="bg-slate-100 text-slate-700 text-[10px] font-semibold px-2 py-0.5 rounded border border-slate-200 uppercase">
+                                      {c}
+                                    </span>
+                                  ))}
+                                </div>
+                              </td>
+                              <td className="p-3 text-[11px] text-slate-500">{sub.createdAt}</td>
+                              <td className="p-3">
+                                <button
+                                  onClick={() => handleToggleSubscriberStatus(sub.id, sub.status)}
+                                  className={`px-2.5 py-1 rounded-full text-[10px] font-bold cursor-pointer transition-all ${
+                                    sub.status === 'active'
+                                      ? 'bg-emerald-100 text-emerald-800 border border-emerald-200 hover:bg-emerald-200'
+                                      : 'bg-slate-200 text-slate-600 border border-slate-300 hover:bg-slate-300'
+                                  }`}
+                                >
+                                  {sub.status === 'active' ? 'Active' : 'Unsubscribed'}
+                                </button>
+                              </td>
+                              <td className="p-3 text-right">
+                                <button
+                                  onClick={() => handleDeleteSubscriber(sub.id)}
+                                  className="p-1.5 text-slate-400 hover:text-red-600 rounded-lg hover:bg-red-50 transition-colors cursor-pointer"
+                                  title="Delete Subscriber"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+
+              {/* Right Column: Arkesel SMS Dispatch Composer */}
+              <div className="bg-slate-900 text-white rounded-2xl border border-slate-800 p-6 shadow-xl space-y-5 flex flex-col justify-between">
+                <div className="space-y-4">
+                  <div className="border-b border-slate-800 pb-3">
+                    <div className="flex items-center gap-2">
+                      <Send className="w-5 h-5 text-orange-400" />
+                      <h3 className="font-bold text-base text-white">Arkesel SMS Composer</h3>
+                    </div>
+                    <p className="text-xs text-slate-400 mt-1">
+                      Dispatch SMS updates via Arkesel API v2.
+                    </p>
+                  </div>
+
+                  {/* Audience target pill */}
+                  <div className="bg-slate-800 p-3 rounded-xl border border-slate-700 space-y-1">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Target Audience</span>
+                    <div className="text-xs font-bold text-orange-400 flex items-center justify-between">
+                      <span>
+                        {selectedSubscriberIds.length > 0
+                          ? `Selected (${selectedSubscriberIds.length} recipients)`
+                          : subscriberCategoryFilter !== 'all'
+                          ? `Category: ${subscriberCategoryFilter.toUpperCase()} (${filteredSubscribers.filter((s) => s.status === 'active').length})`
+                          : `All Active Subscribers (${subscribersList.filter((s) => s.status === 'active').length})`}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Sender ID setting */}
+                  <div>
+                    <label className="block text-xs font-bold text-slate-300 uppercase mb-1">Sender ID (Max 11 Chars)</label>
+                    <input
+                      type="text"
+                      maxLength={11}
+                      value={smsSenderId}
+                      onChange={(e) => setSmsSenderId(e.target.value)}
+                      placeholder="Akwasi"
+                      className="w-full px-3.5 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs font-bold text-white outline-none focus:border-orange-500 font-mono"
+                    />
+                  </div>
+
+                  {/* Quick Templates */}
+                  <div>
+                    <label className="block text-xs font-bold text-slate-300 uppercase mb-1.5">Quick SMS Templates</label>
+                    <div className="grid grid-cols-1 gap-1.5 text-xs">
+                      {[
+                        { label: '🚗 Vehicle Deal Alert', text: 'Hot Deal on AkwasiJob! A rare vehicle has just been listed. Visit https://akwasijob.vercel.app to check it out!' },
+                        { label: '🚜 Machinery Update', text: 'New Heavy Equipment available for sale/rent on AkwasiJob. Browse updated listings now at https://akwasijob.vercel.app' },
+                        { label: '🏡 Property Alert', text: 'Prime property alert in Accra! Explore new houses and land for sale on AkwasiJob. Visit https://akwasijob.vercel.app' },
+                      ].map((tpl, i) => (
+                        <button
+                          key={i}
+                          type="button"
+                          onClick={() => setSmsMessage(tpl.text)}
+                          className="p-2 bg-slate-800 hover:bg-slate-750 text-slate-300 hover:text-white rounded-xl text-left text-[11px] font-medium border border-slate-700/60 transition-colors cursor-pointer"
+                        >
+                          {tpl.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Message Body Textarea */}
+                  <div>
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="block text-xs font-bold text-slate-300 uppercase">Message Text</label>
+                      <span className="text-[11px] font-mono text-slate-400">
+                        {smsMessage.length} chars ({Math.ceil(smsMessage.length / 160) || 1} SMS)
+                      </span>
+                    </div>
+                    <textarea
+                      rows={4}
+                      placeholder="Type your broadcast SMS message here..."
+                      value={smsMessage}
+                      onChange={(e) => setSmsMessage(e.target.value)}
+                      className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white placeholder-slate-500 outline-none focus:border-orange-500 leading-relaxed font-sans"
+                    />
+                  </div>
+                </div>
+
+                <div className="pt-2">
+                  <button
+                    type="button"
+                    onClick={handleSendSmsBroadcast}
+                    disabled={isSendingSms || !smsMessage.trim()}
+                    className="w-full py-3 px-4 bg-orange-600 hover:bg-orange-500 active:bg-orange-700 text-white font-bold rounded-xl text-xs shadow-lg shadow-orange-600/30 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-40"
+                  >
+                    {isSendingSms ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        <span>Sending via Arkesel...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Send className="w-4 h-4" />
+                        <span>Send SMS via Arkesel API</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* TAB 5: SYSTEM CONFIG */}
         {activeTab === 'settings' && (
           <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs space-y-6 max-w-2xl">
             <div>

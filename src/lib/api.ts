@@ -144,3 +144,44 @@ export const enquiries = {
   delete: (id: string) =>
     request<{ success: boolean }>(`/enquiries/${id}`, { method: 'DELETE' }, true),
 };
+
+// ─── Subscriptions ────────────────────────────────────────────────────────────
+export const subscriptions = {
+  subscribe: (data: { phone: string; name?: string; categories?: string[] }) =>
+    request<{ success: boolean; message: string }>('/subscriptions', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  getAll: (params?: { category?: string; status?: string; search?: string }) => {
+    const q = new URLSearchParams();
+    if (params?.category && params.category !== 'all') q.set('category', params.category);
+    if (params?.status && params.status !== 'all') q.set('status', params.status);
+    if (params?.search) q.set('search', params.search);
+    return request<unknown[]>(`/subscriptions${q.toString() ? `?${q}` : ''}`, {}, true);
+  },
+
+  delete: (id: string) =>
+    request<{ success: boolean }>(`/subscriptions/${id}`, { method: 'DELETE' }, true),
+
+  toggleStatus: (id: string, status: 'active' | 'unsubscribed') =>
+    request<{ success: boolean; status: string }>(`/subscriptions/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ status }),
+    }, true),
+};
+
+// ─── SMS (admin) ──────────────────────────────────────────────────────────────
+export const sms = {
+  send: (recipients: string[], message: string, senderId?: string) =>
+    request<{
+      success: boolean;
+      count: number;
+      simulated?: boolean;
+      message?: string;
+      arkeselResponse: unknown;
+    }>('/sms/send', {
+      method: 'POST',
+      body: JSON.stringify({ recipients, message, senderId }),
+    }, true),
+};
