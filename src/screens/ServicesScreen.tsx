@@ -14,6 +14,7 @@ import {
   PhoneCall
 } from 'lucide-react';
 import { ScreenType } from '../types';
+import { enquiries as enquiriesApi } from '../lib/api';
 
 interface ServicesScreenProps {
   onNavigate?: (screen: ScreenType) => void;
@@ -32,14 +33,39 @@ export const ServicesScreen: React.FC<ServicesScreenProps> = ({
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmitQuote = (e: React.FormEvent) => {
+  const handleSubmitQuote = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSubmitting(true);
+    if (!contactName.trim() || !phone.trim() || !details.trim()) return;
 
-    setTimeout(() => {
-      setIsSubmitting(false);
+    setIsSubmitting(true);
+    try {
+      const fullCustomerName = companyName.trim()
+        ? `${contactName.trim()} (${companyName.trim()})`
+        : contactName.trim();
+
+      const categoryLabel =
+        selectedServiceType === 'fumigation'
+          ? 'Fumigation Services'
+          : selectedServiceType === 'management'
+          ? 'Property Management'
+          : 'Fumigation & Property Management';
+
+      await enquiriesApi.create({
+        customerName: fullCustomerName,
+        phone: phone.trim(),
+        email: email.trim() || undefined,
+        category: categoryLabel,
+        source: 'form',
+        message: details.trim(),
+      });
+
       setIsSubmitted(true);
-    }, 600);
+    } catch (err) {
+      console.error('Error submitting quote request:', err);
+      alert('Failed to submit quote request. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleScrollToQuote = (service?: 'fumigation' | 'management' | 'both') => {
@@ -78,11 +104,11 @@ export const ServicesScreen: React.FC<ServicesScreenProps> = ({
               </button>
 
               <a
-                href="tel:+233302214500"
+                href="tel:+233594594245"
                 className="bg-white border border-slate-300 hover:bg-slate-50 text-slate-800 font-sans font-semibold text-sm px-6 py-3.5 rounded-md transition-colors inline-flex items-center gap-2"
               >
                 <PhoneCall className="w-4 h-4 text-slate-600" />
-                <span>+233 30 221 4500</span>
+                <span>+233 59 459 4245</span>
               </a>
             </div>
           </div>

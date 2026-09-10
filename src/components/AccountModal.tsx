@@ -54,7 +54,7 @@ export const AccountModal: React.FC<AccountModalProps> = ({
             </div>
             <div className="flex items-center gap-2 text-slate-600">
               <Phone className="w-4 h-4 text-[#f97316]" />
-              <span>+233 30 221 4500 (Accra & Tema)</span>
+              <span>+233 59 459 4245</span>
             </div>
           </div>
 

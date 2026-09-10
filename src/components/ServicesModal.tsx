@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { X, ShieldCheck, Home, CheckCircle2, ArrowRight } from 'lucide-react';
+import { X, ShieldCheck, Home, CheckCircle2, ArrowRight, Loader2 } from 'lucide-react';
+import { enquiries as enquiriesApi } from '../lib/api';
 
 interface ServicesModalProps {
   serviceName: string | null;
@@ -16,16 +17,35 @@ export const ServicesModal: React.FC<ServicesModalProps> = ({
   const [contactName, setContactName] = useState('');
   const [contactPhone, setContactPhone] = useState('');
   const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
   if (!serviceName) return null;
 
-  const handleBooking = (e: React.FormEvent) => {
+  const handleBooking = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSubmitted(true);
-    setTimeout(() => {
-      setSubmitted(false);
-      onClose();
-    }, 2500);
+    if (!contactName.trim() || !contactPhone.trim()) return;
+
+    setSubmitting(true);
+    try {
+      await enquiriesApi.create({
+        customerName: contactName.trim(),
+        phone: contactPhone.trim(),
+        category: selectedService,
+        source: 'form',
+        message: `Direct Service Quote request for: ${selectedService}`,
+      });
+
+      setSubmitted(true);
+      setTimeout(() => {
+        setSubmitted(false);
+        onClose();
+      }, 2500);
+    } catch (err) {
+      console.error('Error dispatching quote request:', err);
+      alert('Failed to dispatch quote request. Please try again.');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -142,10 +162,20 @@ export const ServicesModal: React.FC<ServicesModalProps> = ({
               </div>
               <button
                 type="submit"
-                className="w-full bg-[#f97316] hover:bg-[#ea580c] text-white py-2.5 rounded-lg text-xs font-semibold flex items-center justify-center gap-2 cursor-pointer transition-colors shadow-sm"
+                disabled={submitting}
+                className="w-full bg-[#f97316] hover:bg-[#ea580c] text-white py-2.5 rounded-lg text-xs font-semibold flex items-center justify-center gap-2 cursor-pointer transition-colors shadow-sm disabled:opacity-60"
               >
-                <span>Dispatch Request</span>
-                <ArrowRight className="w-4 h-4" />
+                {submitting ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span>Sending Request...</span>
+                  </>
+                ) : (
+                  <>
+                    <span>Dispatch Request</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </>
+                )}
               </button>
             </form>
           )}

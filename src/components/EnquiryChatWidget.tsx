@@ -124,7 +124,7 @@ export const EnquiryChatWidget: React.FC<EnquiryChatWidgetProps> = () => {
         ...prev,
         {
           sender: 'bot',
-          text: "I'm temporarily unavailable. Please contact us on WhatsApp: +233 24 123 4567 for immediate help.",
+          text: "I'm temporarily unavailable. Please contact us on WhatsApp: +233 24 711 1605 for immediate help.",
           time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         },
       ]);
@@ -206,7 +206,7 @@ export const EnquiryChatWidget: React.FC<EnquiryChatWidgetProps> = () => {
                       <div className="mt-2.5 pt-2 border-t border-slate-100 flex items-center justify-between gap-2">
                         <span className="text-[10px] text-slate-400 font-medium">Need immediate help?</span>
                         <a
-                          href={`https://wa.me/233241234567?text=${encodeURIComponent(
+                          href={`https://wa.me/233247111605?text=${encodeURIComponent(
                             `Hello, I asked the AI Assistant: "${chatMessages[idx - 1]?.text || 'General Query'}"`
                           )}`}
                           target="_blank"

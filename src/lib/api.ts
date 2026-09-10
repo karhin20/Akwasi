@@ -138,9 +138,23 @@ export const chat = {
     }),
 };
 
-// ─── Enquiries (admin) ────────────────────────────────────────────────────────
+// ─── Enquiries ─────────────────────────────────────────────────────────────────
 export const enquiries = {
   getAll: () => request<unknown[]>('/enquiries', {}, true),
+  create: (data: {
+    customerName: string;
+    phone: string;
+    email?: string;
+    category?: string;
+    source?: string;
+    message: string;
+    itemTitle?: string;
+    listingId?: string;
+  }) =>
+    request<{ success: boolean; id: string }>('/enquiries', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
   delete: (id: string) =>
     request<{ success: boolean }>(`/enquiries/${id}`, { method: 'DELETE' }, true),
 };
