@@ -164,8 +164,8 @@ export const PostListingModal: React.FC<PostListingModalProps> = ({
         featured: false,
         seller: {
           name: 'AkwasiJob Marketplace',
-          phone: '0594594245',
-          whatsapp: '+233247111605',
+          phone: '0247111605',
+          whatsapp: '+233594594245',
           verified: true,
           location: `${location}, Ghana`,
         },

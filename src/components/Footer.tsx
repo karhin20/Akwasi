@@ -206,20 +206,20 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate, onOpenService, onOpe
             </li>
             <li>
               <a
-                href="tel:0594594245"
+                href="tel:0247111605"
                 className="hover:text-white transition-colors text-left flex items-center gap-1.5"
               >
-                <span>Call: 0594594245</span>
+                <span>Call: 0247111605</span>
               </a>
             </li>
             <li>
               <a
-                href="https://wa.me/233247111605"
+                href="https://wa.me/233594594245"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="hover:text-emerald-400 text-emerald-500 font-medium transition-colors text-left flex items-center gap-1.5"
               >
-                <span>WhatsApp: +233247111605</span>
+                <span>WhatsApp: +233594594245</span>
               </a>
             </li>
             {onOpenSmsModal && (

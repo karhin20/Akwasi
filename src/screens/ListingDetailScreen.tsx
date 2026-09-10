@@ -555,7 +555,7 @@ export const ListingDetailScreen: React.FC<ListingDetailScreenProps> = ({
               <div className="mt-5 space-y-3">
                 {/* WhatsApp Button */}
                 <a
-                  href={`https://wa.me/${(listing.seller?.whatsapp || '233594594245').replace(/\D/g, '')}?text=Hello,%20I%20am%20interested%20in%20"${encodeURIComponent(listing.title)}"%20listed%20on%20AkwasiJob%20(ID:%20${listing.id}).%20Is%20it%20still%20available?`}
+                  href={`https://wa.me/233594594245?text=Hello,%20I%20am%20interested%20in%20"${encodeURIComponent(listing.title)}"%20listed%20on%20AkwasiJob%20(ID:%20${listing.id}).%20Is%20it%20still%20available?`}
                   target="_blank"
                   rel="noopener noreferrer"
                   id="whatsapp-seller-btn"
@@ -567,12 +567,12 @@ export const ListingDetailScreen: React.FC<ListingDetailScreenProps> = ({
 
                 {/* Call Button */}
                 <a
-                  href={`tel:${listing.seller?.phone || '0247111605'}`}
+                  href="tel:0247111605"
                   id="call-seller-btn"
                   className="w-full flex items-center justify-center gap-2 bg-slate-900 hover:bg-slate-800 text-white font-bold py-3 px-4 rounded-xl shadow-sm transition-all cursor-pointer text-sm"
                 >
                   <Phone className="w-4 h-4" />
-                  <span>Call {listing.seller?.phone || '0247111605'}</span>
+                  <span>Call 0247111605</span>
                 </a>
               </div>
             </div>
@@ -740,7 +740,7 @@ export const ListingDetailScreen: React.FC<ListingDetailScreenProps> = ({
       {/* Floating Bottom Bar on Mobile for Instant Contact */}
       <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 p-3 z-40 flex items-center gap-2 shadow-xl">
         <a
-          href={`https://wa.me/${(listing.seller?.whatsapp || '233594594245').replace(/\D/g, '')}?text=Hello,%20I%20am%20interested%20in%20"${encodeURIComponent(listing.title)}"%20listed%20on%20AkwasiJob.`}
+          href={`https://wa.me/233594594245?text=Hello,%20I%20am%20interested%20in%20"${encodeURIComponent(listing.title)}"%20listed%20on%20AkwasiJob.`}
           target="_blank"
           rel="noopener noreferrer"
           className="flex-1 flex items-center justify-center gap-1.5 bg-[#25D366] text-white font-bold py-2.5 px-3 rounded-xl text-xs shadow-sm"
@@ -749,7 +749,7 @@ export const ListingDetailScreen: React.FC<ListingDetailScreenProps> = ({
           <span>WhatsApp</span>
         </a>
         <a
-          href={`tel:${listing.seller?.phone || '0247111605'}`}
+          href="tel:0247111605"
           className="flex-1 flex items-center justify-center gap-1.5 bg-slate-900 text-white font-bold py-2.5 px-3 rounded-xl text-xs shadow-sm"
         >
           <Phone className="w-4 h-4" />

@@ -73,8 +73,8 @@ export const INITIAL_LISTINGS: ListingItem[] = [
     ],
     seller: {
       name: 'E. Wells Realty',
-      phone: '0594594245',
-      whatsapp: '+233247111605',
+      phone: '0247111605',
+      whatsapp: '+233594594245',
       verified: true,
       location: 'Ridge & Airport Residential, Accra'
     }
@@ -128,8 +128,8 @@ export const INITIAL_LISTINGS: ListingItem[] = [
     ],
     seller: {
       name: 'Mantrac Ghana Certified Pre-Owned',
-      phone: '0594594245',
-      whatsapp: '+233247111605',
+      phone: '0247111605',
+      whatsapp: '+233594594245',
       verified: true,
       location: 'Tema Heavy Industrial Area, Ghana'
     }
@@ -179,8 +179,8 @@ export const INITIAL_LISTINGS: ListingItem[] = [
     ],
     seller: {
       name: 'Akwasi Prime Motors Ltd',
-      phone: '0594594245',
-      whatsapp: '+233247111605',
+      phone: '0247111605',
+      whatsapp: '+233594594245',
       verified: true,
       location: 'Spintex Road, Accra'
     }
@@ -228,8 +228,8 @@ export const INITIAL_LISTINGS: ListingItem[] = [
     ],
     seller: {
       name: 'Accra Executive Auto Gallery',
-      phone: '0594594245',
-      whatsapp: '+233247111605',
+      phone: '0247111605',
+      whatsapp: '+233594594245',
       verified: true,
       location: 'Airport Residential, Accra'
     }
@@ -275,8 +275,8 @@ export const INITIAL_LISTINGS: ListingItem[] = [
     ],
     seller: {
       name: 'Star Motors Ghana',
-      phone: '0594594245',
-      whatsapp: '+233247111605',
+      phone: '0247111605',
+      whatsapp: '+233594594245',
       verified: true,
       location: 'Cantonments, Accra'
     }
@@ -325,8 +325,8 @@ export const INITIAL_LISTINGS: ListingItem[] = [
     ],
     seller: {
       name: 'Ashanti Logistics & Haulage',
-      phone: '0594594245',
-      whatsapp: '+233247111605',
+      phone: '0247111605',
+      whatsapp: '+233594594245',
       verified: true,
       location: 'Suame Magazine, Kumasi'
     }
@@ -368,8 +368,8 @@ export const INITIAL_LISTINGS: ListingItem[] = [
     ],
     seller: {
       name: 'Western Region Equipment Hire',
-      phone: '0594594245',
-      whatsapp: '+233247111605',
+      phone: '0247111605',
+      whatsapp: '+233594594245',
       verified: true,
       location: 'Harbour Road, Takoradi'
     }
@@ -410,8 +410,8 @@ export const INITIAL_LISTINGS: ListingItem[] = [
     ],
     seller: {
       name: 'Akwasi Heavy Logistics Ltd',
-      phone: '0594594245',
-      whatsapp: '+233247111605',
+      phone: '0247111605',
+      whatsapp: '+233594594245',
       verified: true,
       location: 'Tema Community 1'
     }
@@ -453,8 +453,8 @@ export const INITIAL_LISTINGS: ListingItem[] = [
     ],
     seller: {
       name: 'Ghana Earthmovers Network',
-      phone: '0594594245',
-      whatsapp: '+233247111605',
+      phone: '0247111605',
+      whatsapp: '+233594594245',
       verified: true,
       location: 'Industrial Area, Accra'
     }
@@ -494,8 +494,8 @@ export const INITIAL_LISTINGS: ListingItem[] = [
     ],
     seller: {
       name: 'Mining & Haulage Fleet Services',
-      phone: '0594594245',
-      whatsapp: '+233247111605',
+      phone: '0247111605',
+      whatsapp: '+233594594245',
       verified: true,
       location: 'Tarkwa Mining Belt'
     }
@@ -535,8 +535,8 @@ export const INITIAL_LISTINGS: ListingItem[] = [
     ],
     seller: {
       name: 'Anglo-Gold Contractors Asset Sales',
-      phone: '0594594245',
-      whatsapp: '+233247111605',
+      phone: '0247111605',
+      whatsapp: '+233594594245',
       verified: true,
       location: 'Tarkwa, Western Region'
     }
@@ -577,8 +577,8 @@ export const INITIAL_LISTINGS: ListingItem[] = [
     ],
     seller: {
       name: 'West Africa Heavy Fleet Ltd',
-      phone: '0594594245',
-      whatsapp: '+233247111605',
+      phone: '0247111605',
+      whatsapp: '+233594594245',
       verified: true,
       location: 'Ring Road Central, Accra'
     }
@@ -628,8 +628,8 @@ export const INITIAL_LISTINGS: ListingItem[] = [
     ],
     seller: {
       name: 'Akwasi Luxury Properties',
-      phone: '0594594245',
-      whatsapp: '+233247111605',
+      phone: '0247111605',
+      whatsapp: '+233594594245',
       verified: true,
       location: 'Cantonments, Accra'
     }
@@ -666,8 +666,8 @@ export const INITIAL_LISTINGS: ListingItem[] = [
     ],
     seller: {
       name: 'Accra Commercial Realty Partners',
-      phone: '0594594245',
-      whatsapp: '+233247111605',
+      phone: '0247111605',
+      whatsapp: '+233594594245',
       verified: true,
       location: 'East Legon, Accra'
     }
@@ -708,8 +708,8 @@ export const INITIAL_LISTINGS: ListingItem[] = [
     ],
     seller: {
       name: 'Prime Heritage Homes',
-      phone: '0594594245',
-      whatsapp: '+233247111605',
+      phone: '0247111605',
+      whatsapp: '+233594594245',
       verified: true,
       location: 'Labone, Accra'
     }
@@ -744,8 +744,8 @@ export const INITIAL_LISTINGS: ListingItem[] = [
     ],
     seller: {
       name: 'Osu Commercial Assets Ltd',
-      phone: '0594594245',
-      whatsapp: '+233247111605',
+      phone: '0247111605',
+      whatsapp: '+233594594245',
       verified: true,
       location: 'Osu, Accra'
     }
