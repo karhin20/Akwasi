@@ -57,7 +57,7 @@ export const SmsSubscriptionModal: React.FC<SmsSubscriptionModalProps> = ({
 
     const cleanPhone = phone.trim().replace(/\s+/g, '');
     if (!cleanPhone || cleanPhone.length < 9) {
-      setErrorMsg('Please enter a valid mobile number (e.g., 0241234567).');
+      setErrorMsg('Please enter a valid mobile number (e.g., 0594594245).');
       return;
     }
 
@@ -141,7 +141,7 @@ export const SmsSubscriptionModal: React.FC<SmsSubscriptionModalProps> = ({
                   </div>
                   <input
                     type="tel"
-                    placeholder="024 123 4567"
+                    placeholder="059 459 4245"
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
                     required

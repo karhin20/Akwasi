@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { ListingItem, ScreenType, EnquiryItem, SubscriberItem } from '../types';
 import {
-  ShieldCheck,
   Plus,
   Search,
   Edit3,
@@ -498,7 +497,7 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
         <div className="w-full max-w-md bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl overflow-hidden p-8 space-y-6">
           <div className="text-center space-y-2">
             <div className="w-12 h-12 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center mx-auto text-orange-500 shadow-md">
-              <ShieldCheck className="w-6 h-6" />
+              <Lock className="w-6 h-6" />
             </div>
             <h2 className="text-2xl font-black text-white tracking-tight">Admin Portal Access</h2>
           </div>
@@ -586,11 +585,7 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
             </button>
             <div>
               <div className="flex items-center gap-2">
-                <ShieldCheck className="w-6 h-6 text-slate-300" />
                 <h1 className="text-xl font-black tracking-tight text-white">Admin Management Portal</h1>
-                <span className="bg-slate-800 text-slate-300 border border-slate-700 text-[10px] uppercase font-bold px-2 py-0.5 rounded-md">
-                  {currentAdminUser || 'Super Admin'}
-                </span>
               </div>
               <p className="text-xs text-slate-400 mt-0.5">
                 Manage equipment listings, approvals, seller verifications, and marketplace metrics.
