@@ -49,7 +49,6 @@ export const AccountModal: React.FC<AccountModalProps> = ({
           {/* Quick Support Card */}
           <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
             <div className="flex items-center gap-2 text-slate-600">
-            <div className="flex items-center gap-2 text-slate-600">
               <Mail className="w-4 h-4 text-[#f97316] shrink-0" />
               <span className="truncate">support@akwasijob.com</span>
             </div>
