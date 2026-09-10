@@ -125,14 +125,14 @@ export const ListingDetailModal: React.FC<ListingDetailModalProps> = ({
               {/* Direct Seller Contact Buttons */}
               <div className="space-y-2">
                 <a
-                  href={`tel:${listing.seller?.phone || '+233594594245'}`}
+                  href={`tel:${listing.seller?.phone || '0247111605'}`}
                   className="w-full bg-slate-900 hover:bg-slate-800 text-white py-3 px-4 rounded-lg font-sans font-semibold text-sm flex items-center justify-center gap-2 transition-colors shadow-sm"
                 >
                   <Phone className="w-4 h-4" />
-                  <span>Call Seller: {listing.seller?.phone || '+233 59 459 4245'}</span>
+                  <span>Call Seller: {listing.seller?.phone || '0247111605'}</span>
                 </a>
                 <a
-                  href={`https://wa.me/${(listing.seller?.whatsapp || '233247111605').replace(/[^0-9]/g, '')}?text=Hello,%20I%20am%20interested%20in%20the%20${encodeURIComponent(listing.title)}%20listed%20on%20AkwasiJob`}
+                  href={`https://wa.me/${(listing.seller?.whatsapp || '233594594245').replace(/[^0-9]/g, '')}?text=Hello,%20I%20am%20interested%20in%20the%20${encodeURIComponent(listing.title)}%20listed%20on%20AkwasiJob`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3 px-4 rounded-lg font-sans font-semibold text-sm flex items-center justify-center gap-2 transition-colors shadow-sm"
@@ -280,15 +280,15 @@ export const ListingDetailModal: React.FC<ListingDetailModalProps> = ({
 
               <div className="flex items-center gap-2.5 w-full sm:w-auto shrink-0">
                 <a
-                  href={`tel:${(listing.seller?.phone || '233594594245').replace(/[^0-9+]/g, '')}`}
+                  href={`tel:${(listing.seller?.phone || '0247111605').replace(/[^0-9+]/g, '')}`}
                   className="flex-1 sm:flex-initial bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs py-2.5 px-4 rounded-xl transition-colors cursor-pointer flex items-center justify-center gap-1.5"
                 >
                   <Phone className="w-3.5 h-3.5" />
-                  <span>Call Seller</span>
+                  <span>Call 0247111605</span>
                 </a>
 
                 <a
-                  href={`https://wa.me/${(listing.seller?.whatsapp || '233247111605').replace(/[^0-9]/g, '')}?text=Hello,%20I%20am%20interested%20in%20requesting%20a%20quotation/inspection%20for%20${encodeURIComponent(listing.title)}`}
+                  href={`https://wa.me/${(listing.seller?.whatsapp || '233594594245').replace(/[^0-9]/g, '')}?text=Hello,%20I%20am%20interested%20in%20requesting%20a%20quotation/inspection%20for%20${encodeURIComponent(listing.title)}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex-1 sm:flex-initial bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs py-2.5 px-4 rounded-xl transition-colors cursor-pointer flex items-center justify-center gap-1.5 shadow-xs"

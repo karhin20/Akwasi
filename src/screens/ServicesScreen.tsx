@@ -104,11 +104,20 @@ export const ServicesScreen: React.FC<ServicesScreenProps> = ({
               </button>
 
               <a
-                href="tel:+233594594245"
-                className="bg-white border border-slate-300 hover:bg-slate-50 text-slate-800 font-sans font-semibold text-sm px-6 py-3.5 rounded-md transition-colors inline-flex items-center gap-2"
+                href="tel:0247111605"
+                className="bg-white border border-slate-300 hover:bg-slate-50 text-slate-800 font-sans font-semibold text-sm px-5 py-3.5 rounded-md transition-colors inline-flex items-center gap-2"
               >
                 <PhoneCall className="w-4 h-4 text-slate-600" />
-                <span>+233 59 459 4245</span>
+                <span>Call 0247111605</span>
+              </a>
+
+              <a
+                href="https://wa.me/233594594245?text=Hello,%20I%20would%20like%20to%20enquire%20about%20your%20machinery%20inspection%20and%20haulage%20services%20on%20AkwasiJob."
+                target="_blank"
+                rel="noopener noreferrer"
+                className="bg-[#25D366] hover:bg-[#20bd5a] text-white font-sans font-semibold text-sm px-5 py-3.5 rounded-md transition-colors inline-flex items-center gap-2"
+              >
+                <span>WhatsApp Us</span>
               </a>
             </div>
           </div>

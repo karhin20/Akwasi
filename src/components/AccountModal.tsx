@@ -1,5 +1,5 @@
 import React from 'react';
-import { X, User, Package, ShieldCheck, Mail, Phone } from 'lucide-react';
+import { X, User, Package, ShieldCheck, Mail, Phone, MessageSquare } from 'lucide-react';
 import { ListingItem } from '../types';
 
 interface AccountModalProps {
@@ -47,15 +47,20 @@ export const AccountModal: React.FC<AccountModalProps> = ({
         {/* Content Tabs */}
         <div className="p-6 space-y-6 max-h-[75vh] overflow-y-auto">
           {/* Quick Support Card */}
-          <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+          <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
             <div className="flex items-center gap-2 text-slate-600">
-              <Mail className="w-4 h-4 text-[#f97316]" />
-              <span>support@akwasijob.com.gh</span>
-            </div>
             <div className="flex items-center gap-2 text-slate-600">
-              <Phone className="w-4 h-4 text-[#f97316]" />
-              <span>+233 59 459 4245</span>
+              <Mail className="w-4 h-4 text-[#f97316] shrink-0" />
+              <span className="truncate">support@akwasijob.com</span>
             </div>
+            <a href="tel:0247111605" className="flex items-center gap-2 text-slate-600 hover:text-orange-600 transition-colors">
+              <Phone className="w-4 h-4 text-[#f97316] shrink-0" />
+              <span>Calls: 0247111605</span>
+            </a>
+            <a href="https://wa.me/233594594245" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-slate-600 hover:text-emerald-600 transition-colors">
+              <MessageSquare className="w-4 h-4 text-[#25D366] shrink-0" />
+              <span>WhatsApp: 0594594245</span>
+            </a>
           </div>
 
           {/* User's Posted Listings */}

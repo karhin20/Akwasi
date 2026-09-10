@@ -59,7 +59,7 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate, onOpenService, onOpe
               <div className="relative w-full sm:w-64">
                 <input
                   type="tel"
-                  placeholder="Enter phone (e.g. 0241234567)"
+                  placeholder="Enter phone (e.g. 0594594245)"
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
                   className="w-full px-4 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-sm font-medium text-white placeholder-slate-500 focus:outline-none focus:border-orange-500"
@@ -203,6 +203,24 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate, onOpenService, onOpe
               >
                 Contact Support
               </button>
+            </li>
+            <li>
+              <a
+                href="tel:0594594245"
+                className="hover:text-white transition-colors text-left flex items-center gap-1.5"
+              >
+                <span>Call: 0594594245</span>
+              </a>
+            </li>
+            <li>
+              <a
+                href="https://wa.me/233247111605"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:text-emerald-400 text-emerald-500 font-medium transition-colors text-left flex items-center gap-1.5"
+              >
+                <span>WhatsApp: +233247111605</span>
+              </a>
             </li>
             {onOpenSmsModal && (
               <li>
