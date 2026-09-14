@@ -102,7 +102,7 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
   const [subscriberSearchQuery, setSubscriberSearchQuery] = useState('');
   const [selectedSubscriberIds, setSelectedSubscriberIds] = useState<string[]>([]);
   const [smsMessage, setSmsMessage] = useState('');
-  const [smsSenderId, setSmsSenderId] = useState('Akwasi');
+  const [smsSenderId, setSmsSenderId] = useState('Akwasi Job');
   const [isSendingSms, setIsSendingSms] = useState(false);
 
   // System settings state
@@ -1216,7 +1216,7 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
               <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs flex items-center justify-between">
                 <div>
                   <span className="text-xs font-bold uppercase text-slate-400">Arkesel Sender ID</span>
-                  <div className="text-xl font-bold text-slate-900 mt-1 font-mono">{smsSenderId || 'Akwasi'}</div>
+                  <div className="text-xl font-bold text-slate-900 mt-1 font-mono">{smsSenderId || 'Akwasi Job'}</div>
                 </div>
                 <div className="w-12 h-12 bg-blue-100 text-blue-600 rounded-2xl flex items-center justify-center">
                   <Send className="w-6 h-6" />
@@ -1414,7 +1414,7 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
                       maxLength={11}
                       value={smsSenderId}
                       onChange={(e) => setSmsSenderId(e.target.value)}
-                      placeholder="Akwasi"
+                      placeholder="Akwasi Job"
                       className="w-full px-3.5 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs font-bold text-white outline-none focus:border-orange-500 font-mono"
                     />
                   </div>
