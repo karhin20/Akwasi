@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { ListingItem, ScreenType, EnquiryItem, SubscriberItem } from '../types';
+import { ListingItem, ScreenType, EnquiryItem, SubscriberItem, ServiceItem } from '../types';
 import {
   Plus,
   Search,
@@ -38,6 +38,10 @@ import {
   Square,
   RefreshCw,
   ClipboardList,
+  Wrench,
+  ToggleLeft,
+  ToggleRight,
+  Layers,
 } from 'lucide-react';
 import {
   auth,
@@ -47,6 +51,7 @@ import {
   media as mediaApi,
   subscriptions as subscriptionsApi,
   sms as smsApi,
+  services as servicesApi,
 } from '../lib/api';
 import { Upload, X, MapPin, Calendar, Gauge, Fuel, ShieldAlert } from 'lucide-react';
 
@@ -75,7 +80,7 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
   const [currentAdminUser, setCurrentAdminUser] = useState<string | null>(null);
 
   // Portal State
-  const [activeTab, setActiveTab] = useState<'overview' | 'listings' | 'enquiries' | 'subscribers' | 'settings'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'listings' | 'enquiries' | 'subscribers' | 'services' | 'settings'>('overview');
   const [searchQuery, setSearchQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<string>('all');
@@ -105,6 +110,21 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
   const [smsSenderId, setSmsSenderId] = useState('Akwasi Job');
   const [isSendingSms, setIsSendingSms] = useState(false);
 
+  // Enterprise Services State
+  const [servicesList, setServicesList] = useState<ServiceItem[]>([]);
+  const [servicesLoading, setServicesLoading] = useState(false);
+  const [isServiceModalOpen, setIsServiceModalOpen] = useState(false);
+  const [editingServiceId, setEditingServiceId] = useState<string | null>(null);
+  const [serviceFormTitle, setServiceFormTitle] = useState('');
+  const [serviceFormCategory, setServiceFormCategory] = useState('');
+  const [serviceFormDescription, setServiceFormDescription] = useState('');
+  const [serviceFormFeatures, setServiceFormFeatures] = useState('');
+  const [serviceFormIcon, setServiceFormIcon] = useState('ShieldCheck');
+  const [serviceFormImage, setServiceFormImage] = useState('');
+  const [serviceFormCoverage, setServiceFormCoverage] = useState('');
+  const [serviceFormIsActive, setServiceFormIsActive] = useState(true);
+  const [isSavingService, setIsSavingService] = useState(false);
+
   // System settings state
   const [exchangeRate, setExchangeRate] = useState<number>(11.06);
 
@@ -112,6 +132,18 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
     setToastMessage(msg);
     setTimeout(() => setToastMessage(null), 3500);
   };
+
+  const fetchServices = useCallback(async () => {
+    try {
+      setServicesLoading(true);
+      const data = await servicesApi.getAll(true);
+      setServicesList(data as ServiceItem[]);
+    } catch (err) {
+      console.error('Failed to fetch services:', err);
+    } finally {
+      setServicesLoading(false);
+    }
+  }, []);
 
   const fetchSubscribers = useCallback(async () => {
     try {
@@ -184,8 +216,106 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
     if (isAuthenticated) {
       fetchEnquiries();
       fetchSubscribers();
+      fetchServices();
     }
-  }, [isAuthenticated, fetchEnquiries, fetchSubscribers]);
+  }, [isAuthenticated, fetchEnquiries, fetchSubscribers, fetchServices]);
+
+  // ── Service Handlers ──
+  const handleOpenCreateService = () => {
+    setEditingServiceId(null);
+    setServiceFormTitle('');
+    setServiceFormCategory('Enterprise Service');
+    setServiceFormDescription('');
+    setServiceFormFeatures('');
+    setServiceFormIcon('ShieldCheck');
+    setServiceFormImage('');
+    setServiceFormCoverage('Ghana Nationwide');
+    setServiceFormIsActive(true);
+    setIsServiceModalOpen(true);
+  };
+
+  const handleOpenEditService = (srv: ServiceItem) => {
+    setEditingServiceId(srv.id);
+    setServiceFormTitle(srv.title);
+    setServiceFormCategory(srv.category || 'Enterprise Service');
+    setServiceFormDescription(srv.description);
+    setServiceFormFeatures((srv.features || []).join('\n'));
+    setServiceFormIcon(srv.icon || 'ShieldCheck');
+    setServiceFormImage(srv.image || '');
+    setServiceFormCoverage(srv.coverage || 'Ghana Nationwide');
+    setServiceFormIsActive(srv.isActive);
+    setIsServiceModalOpen(true);
+  };
+
+  const handleSaveService = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!serviceFormTitle.trim() || !serviceFormDescription.trim()) {
+      showToast('Title and Description are required.');
+      return;
+    }
+
+    const featuresArray = serviceFormFeatures
+      .split('\n')
+      .map((f) => f.trim())
+      .filter(Boolean);
+
+    setIsSavingService(true);
+    try {
+      if (editingServiceId) {
+        await servicesApi.update(editingServiceId, {
+          title: serviceFormTitle.trim(),
+          category: serviceFormCategory.trim(),
+          description: serviceFormDescription.trim(),
+          features: featuresArray,
+          icon: serviceFormIcon,
+          image: serviceFormImage.trim(),
+          coverage: serviceFormCoverage.trim(),
+          isActive: serviceFormIsActive,
+        });
+        showToast('Service details updated successfully!');
+      } else {
+        await servicesApi.create({
+          title: serviceFormTitle.trim(),
+          category: serviceFormCategory.trim(),
+          description: serviceFormDescription.trim(),
+          features: featuresArray,
+          icon: serviceFormIcon,
+          image: serviceFormImage.trim(),
+          coverage: serviceFormCoverage.trim(),
+          isActive: serviceFormIsActive,
+        });
+        showToast('New enterprise service added!');
+      }
+      setIsServiceModalOpen(false);
+      fetchServices();
+    } catch (err) {
+      showToast('Failed to save service changes.');
+    } finally {
+      setIsSavingService(false);
+    }
+  };
+
+  const handleToggleServiceStatus = async (srv: ServiceItem) => {
+    try {
+      const nextActive = !srv.isActive;
+      await servicesApi.update(srv.id, { isActive: nextActive });
+      showToast(`Service status updated to ${nextActive ? 'Active' : 'Inactive'}`);
+      fetchServices();
+    } catch {
+      showToast('Failed to update service status');
+    }
+  };
+
+  const handleDeleteService = async (id: string, title: string) => {
+    if (!window.confirm(`Are you sure you want to delete service "${title}"?`)) return;
+    try {
+      await servicesApi.delete(id);
+      showToast('Service deleted from catalogue');
+      fetchServices();
+    } catch {
+      showToast('Failed to delete service');
+    }
+  };
 
   const filteredSubscribers = subscribersList.filter((sub) => {
     const matchesCategory =
@@ -689,6 +819,18 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
           >
             <Smartphone className="w-4 h-4 text-orange-500" />
             <span>SMS Alerts &amp; Subscribers ({subscribersList.length})</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('services')}
+            className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap flex items-center gap-2 ${
+              activeTab === 'services'
+                ? 'bg-slate-900 text-white shadow-xs'
+                : 'bg-white text-slate-600 hover:bg-slate-200/70 border border-slate-200'
+            }`}
+          >
+            <Wrench className="w-4 h-4 text-orange-500" />
+            <span>Enterprise Services ({servicesList.length})</span>
           </button>
 
           <button
@@ -1483,7 +1625,158 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
           </div>
         )}
 
-        {/* TAB 5: SYSTEM CONFIG */}
+        {/* TAB 5: ENTERPRISE SERVICES */}
+        {activeTab === 'services' && (
+          <div className="space-y-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-slate-200 shadow-xs">
+              <div>
+                <h3 className="font-bold text-slate-900 text-lg flex items-center gap-2">
+                  <Wrench className="w-5 h-5 text-orange-500" />
+                  <span>Enterprise Services Catalogue</span>
+                </h3>
+                <p className="text-xs text-slate-500 mt-1">
+                  Manage offered services, descriptions, features, and active availability on the platform.
+                </p>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={fetchServices}
+                  className="p-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors text-xs font-bold flex items-center gap-1.5 cursor-pointer"
+                  title="Refresh Services"
+                >
+                  <RefreshCw className={`w-3.5 h-3.5 ${servicesLoading ? 'animate-spin' : ''}`} />
+                  <span>Refresh</span>
+                </button>
+
+                <button
+                  onClick={handleOpenCreateService}
+                  className="bg-orange-600 hover:bg-orange-500 text-white text-xs font-bold px-4 py-2.5 rounded-xl shadow-md transition-all flex items-center gap-1.5 cursor-pointer"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>Add New Service</span>
+                </button>
+              </div>
+            </div>
+
+            {servicesLoading ? (
+              <div className="py-16 text-center text-slate-500 text-xs bg-white rounded-2xl border border-slate-200">
+                <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 text-orange-500" />
+                Loading enterprise services catalogue...
+              </div>
+            ) : servicesList.length === 0 ? (
+              <div className="py-16 text-center text-slate-500 text-xs bg-white rounded-2xl border border-dashed border-slate-300">
+                No services added yet. Click "Add New Service" above to create one.
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {servicesList.map((srv) => (
+                  <div
+                    key={srv.id}
+                    className={`bg-white rounded-2xl border transition-all flex flex-col justify-between overflow-hidden shadow-xs ${
+                      srv.isActive ? 'border-slate-200' : 'border-slate-200 bg-slate-50/70 opacity-75'
+                    }`}
+                  >
+                    {srv.image && (
+                      <div className="h-44 w-full bg-slate-900 relative overflow-hidden">
+                        <img src={srv.image} alt={srv.title} className="w-full h-full object-cover" />
+                        <div className="absolute top-3 right-3">
+                          <span
+                            className={`px-2.5 py-1 rounded-full text-[10px] font-bold shadow-xs ${
+                              srv.isActive
+                                ? 'bg-emerald-500 text-white'
+                                : 'bg-slate-700 text-slate-200'
+                            }`}
+                          >
+                            {srv.isActive ? 'Active' : 'Inactive'}
+                          </span>
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="p-5 space-y-3 flex-grow">
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-orange-600 bg-orange-50 px-2 py-0.5 rounded border border-orange-200">
+                          {srv.category || 'General Service'}
+                        </span>
+                        {!srv.image && (
+                          <span
+                            className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
+                              srv.isActive
+                                ? 'bg-emerald-100 text-emerald-800 border border-emerald-200'
+                                : 'bg-slate-200 text-slate-700 border border-slate-300'
+                            }`}
+                          >
+                            {srv.isActive ? 'Active' : 'Inactive'}
+                          </span>
+                        )}
+                      </div>
+
+                      <h4 className="font-bold text-slate-900 text-base leading-snug">{srv.title}</h4>
+
+                      <p className="text-xs text-slate-600 leading-relaxed line-clamp-3">
+                        {srv.description}
+                      </p>
+
+                      {srv.features && srv.features.length > 0 && (
+                        <div className="pt-2 border-t border-slate-100 space-y-1">
+                          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Key Features:</span>
+                          <ul className="text-xs text-slate-700 space-y-1">
+                            {srv.features.slice(0, 3).map((f, i) => (
+                              <li key={i} className="flex items-center gap-1.5 text-[11px]">
+                                <Check className="w-3.5 h-3.5 text-orange-500 shrink-0" />
+                                <span className="truncate">{f}</span>
+                              </li>
+                            ))}
+                            {srv.features.length > 3 && (
+                              <li className="text-[10px] text-slate-400 italic">
+                                + {srv.features.length - 3} more feature(s)
+                              </li>
+                            )}
+                          </ul>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="p-4 bg-slate-50 border-t border-slate-100 flex items-center justify-between gap-2">
+                      <button
+                        onClick={() => handleToggleServiceStatus(srv)}
+                        className={`text-xs font-semibold px-3 py-1.5 rounded-lg border transition-colors cursor-pointer flex items-center gap-1 ${
+                          srv.isActive
+                            ? 'bg-white text-slate-700 border-slate-300 hover:bg-slate-100'
+                            : 'bg-emerald-50 text-emerald-700 border-emerald-300 hover:bg-emerald-100'
+                        }`}
+                      >
+                        {srv.isActive ? <ToggleRight className="w-4 h-4 text-emerald-600" /> : <ToggleLeft className="w-4 h-4 text-slate-400" />}
+                        <span>{srv.isActive ? 'Deactivate' : 'Activate'}</span>
+                      </button>
+
+                      <div className="flex items-center gap-1">
+                        <button
+                          onClick={() => handleOpenEditService(srv)}
+                          className="p-2 text-slate-600 hover:text-slate-900 hover:bg-white rounded-lg border border-slate-200 transition-colors cursor-pointer"
+                          title="Edit Service"
+                        >
+                          <Edit3 className="w-4 h-4" />
+                        </button>
+
+                        <button
+                          onClick={() => handleDeleteService(srv.id, srv.title)}
+                          className="p-2 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg border border-red-200 transition-colors cursor-pointer"
+                          title="Delete Service"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* TAB 6: SYSTEM CONFIG */}
         {activeTab === 'settings' && (
           <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs space-y-6 max-w-2xl">
             <div>
@@ -2076,6 +2369,136 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
                 </button>
                 <button type="submit" className="px-5 py-2 bg-slate-900 text-white font-bold rounded-xl hover:bg-slate-800 cursor-pointer">
                   Save Changes &amp; Sync Images
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* SERVICE CREATE / EDIT MODAL */}
+      {isServiceModalOpen && (
+        <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-white w-full max-w-lg rounded-2xl shadow-2xl border border-slate-200 overflow-hidden my-8">
+            <div className="flex items-center justify-between p-5 border-b border-slate-200 bg-slate-50">
+              <h3 className="font-bold text-base text-slate-900 flex items-center gap-2">
+                <Wrench className="w-5 h-5 text-orange-500" />
+                <span>{editingServiceId ? 'Edit Enterprise Service' : 'Add New Enterprise Service'}</span>
+              </h3>
+              <button
+                onClick={() => setIsServiceModalOpen(false)}
+                className="p-1 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-200 transition-colors cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveService} className="p-6 space-y-4 text-xs">
+              <div>
+                <label className="block text-slate-700 font-bold uppercase mb-1">Service Title *</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Industrial Fumigation & Termite Protection"
+                  value={serviceFormTitle}
+                  onChange={(e) => setServiceFormTitle(e.target.value)}
+                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 outline-none focus:border-orange-500 font-medium"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-slate-700 font-bold uppercase mb-1">Category</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Fumigation / Property Management"
+                    value={serviceFormCategory}
+                    onChange={(e) => setServiceFormCategory(e.target.value)}
+                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 outline-none focus:border-orange-500 font-medium"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-slate-700 font-bold uppercase mb-1">Coverage Area</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Greater Accra & Kumasi"
+                    value={serviceFormCoverage}
+                    onChange={(e) => setServiceFormCoverage(e.target.value)}
+                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 outline-none focus:border-orange-500 font-medium"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-slate-700 font-bold uppercase mb-1">Description *</label>
+                <textarea
+                  rows={3}
+                  required
+                  placeholder="Describe the scope, regulations, and standard of this enterprise service..."
+                  value={serviceFormDescription}
+                  onChange={(e) => setServiceFormDescription(e.target.value)}
+                  className="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 outline-none focus:border-orange-500 font-medium resize-none leading-relaxed"
+                />
+              </div>
+
+              <div>
+                <label className="block text-slate-700 font-bold uppercase mb-1">Key Features (One per line)</label>
+                <textarea
+                  rows={3}
+                  placeholder={"Certified technical personnel\nCustomized site inspections\nEPA & Ministry compliance"}
+                  value={serviceFormFeatures}
+                  onChange={(e) => setServiceFormFeatures(e.target.value)}
+                  className="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 outline-none focus:border-orange-500 font-mono text-[11px] leading-relaxed"
+                />
+              </div>
+
+              <div>
+                <label className="block text-slate-700 font-bold uppercase mb-1">Cover Image URL</label>
+                <input
+                  type="url"
+                  placeholder="https://images.unsplash.com/..."
+                  value={serviceFormImage}
+                  onChange={(e) => setServiceFormImage(e.target.value)}
+                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 outline-none focus:border-orange-500 font-medium"
+                />
+              </div>
+
+              <div className="flex items-center gap-2 pt-2">
+                <input
+                  type="checkbox"
+                  id="serviceActiveCheck"
+                  checked={serviceFormIsActive}
+                  onChange={(e) => setServiceFormIsActive(e.target.checked)}
+                  className="w-4 h-4 text-orange-600 border-slate-300 rounded focus:ring-orange-500 cursor-pointer"
+                />
+                <label htmlFor="serviceActiveCheck" className="text-slate-800 font-bold cursor-pointer">
+                  Active (Visible to clients on public marketplace)
+                </label>
+              </div>
+
+              <div className="pt-4 border-t border-slate-200 flex justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setIsServiceModalOpen(false)}
+                  className="px-4 py-2.5 rounded-xl border border-slate-300 text-slate-700 font-bold hover:bg-slate-100 transition-colors cursor-pointer"
+                >
+                  Cancel
+                </button>
+
+                <button
+                  type="submit"
+                  disabled={isSavingService}
+                  className="px-6 py-2.5 bg-orange-600 hover:bg-orange-500 text-white font-bold rounded-xl shadow-md transition-all cursor-pointer flex items-center gap-2 disabled:opacity-50"
+                >
+                  {isSavingService ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <span>Saving...</span>
+                    </>
+                  ) : (
+                    <span>{editingServiceId ? 'Update Service' : 'Create Service'}</span>
+                  )}
                 </button>
               </div>
             </form>

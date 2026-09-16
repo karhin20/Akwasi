@@ -86,6 +86,20 @@ export interface SubscriberItem {
   createdAt: string;
 }
 
+export interface ServiceItem {
+  id: string;
+  title: string;
+  slug?: string;
+  category: string;
+  description: string;
+  features: string[];
+  icon?: string;
+  image?: string;
+  coverage?: string;
+  isActive: boolean;
+  createdAt?: string;
+}
+
 export interface FilterState {
   searchQuery: string;
   category: string; // 'all_vehicles' | 'heavy_machinery' | 'commercial_trucks' or 'all'

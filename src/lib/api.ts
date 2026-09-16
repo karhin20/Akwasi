@@ -199,3 +199,47 @@ export const sms = {
       body: JSON.stringify({ recipients, message, senderId }),
     }, true),
 };
+
+// ─── Services ──────────────────────────────────────────────────────────────────
+export const services = {
+  getAll: (includeInactive = false) =>
+    request<import('../types').ServiceItem[]>(`/services${includeInactive ? '?includeInactive=true' : ''}`),
+
+  create: (data: {
+    title: string;
+    category?: string;
+    description: string;
+    features?: string[];
+    icon?: string;
+    image?: string;
+    coverage?: string;
+    isActive?: boolean;
+  }) =>
+    request<import('../types').ServiceItem>('/services', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }, true),
+
+  update: (
+    id: string,
+    updates: Partial<{
+      title: string;
+      category: string;
+      description: string;
+      features: string[];
+      icon: string;
+      image: string;
+      coverage: string;
+      isActive: boolean;
+    }>
+  ) =>
+    request<import('../types').ServiceItem>(`/services/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(updates),
+    }, true),
+
+  delete: (id: string) =>
+    request<{ success: boolean }>(`/services/${id}`, {
+      method: 'DELETE',
+    }, true),
+};

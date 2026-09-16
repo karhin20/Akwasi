@@ -13,8 +13,8 @@ import {
   ArrowRight,
   PhoneCall
 } from 'lucide-react';
-import { ScreenType } from '../types';
-import { enquiries as enquiriesApi } from '../lib/api';
+import { ScreenType, ServiceItem } from '../types';
+import { enquiries as enquiriesApi, services as servicesApi } from '../lib/api';
 
 interface ServicesScreenProps {
   onNavigate?: (screen: ScreenType) => void;
@@ -25,6 +25,7 @@ export const ServicesScreen: React.FC<ServicesScreenProps> = ({
   initialService = 'fumigation' 
 }) => {
   const [selectedServiceType, setSelectedServiceType] = useState<'fumigation' | 'management' | 'both'>(initialService);
+  const [dynamicServices, setDynamicServices] = useState<ServiceItem[]>([]);
   const [companyName, setCompanyName] = useState('');
   const [contactName, setContactName] = useState('');
   const [email, setEmail] = useState('');
@@ -32,6 +33,14 @@ export const ServicesScreen: React.FC<ServicesScreenProps> = ({
   const [details, setDetails] = useState('');
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  React.useEffect(() => {
+    servicesApi.getAll().then((data) => {
+      if (Array.isArray(data) && data.length > 0) {
+        setDynamicServices(data);
+      }
+    }).catch((err) => console.error('Error loading services:', err));
+  }, []);
 
   const handleSubmitQuote = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -151,87 +160,135 @@ export const ServicesScreen: React.FC<ServicesScreenProps> = ({
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8">
-            {/* Fumigation Card */}
-            <div className="bg-white rounded-xl p-8 border border-slate-200 shadow-sm flex flex-col space-y-5 hover:border-[#4f6073] transition-all group">
-              <div className="bg-[#cfe1f8]/60 w-16 h-16 rounded-full flex items-center justify-center text-[#4f6073] group-hover:bg-[#cfe1f8] transition-colors">
-                <Bug className="w-8 h-8 text-[#37485b]" />
-              </div>
-              
-              <h3 className="font-heading text-2xl font-bold text-slate-900">
-                Industrial Fumigation
-              </h3>
-              
-              <p className="font-sans text-sm sm:text-base text-slate-600 leading-relaxed flex-grow">
-                Rigorous pest eradication and prevention for warehouses, construction sites, and commercial properties. We use industry-standard, safe protocols to protect your inventory and infrastructure from structural damage and contamination.
-              </p>
+            {dynamicServices.length > 0 ? (
+              dynamicServices.map((srv) => (
+                <div key={srv.id} className="bg-white rounded-xl p-8 border border-slate-200 shadow-sm flex flex-col space-y-5 hover:border-[#4f6073] transition-all group">
+                  <div className="bg-[#cfe1f8]/60 w-16 h-16 rounded-full flex items-center justify-center text-[#4f6073] group-hover:bg-[#cfe1f8] transition-colors">
+                    {srv.slug === 'fumigation' ? (
+                      <Bug className="w-8 h-8 text-[#37485b]" />
+                    ) : srv.slug === 'management' ? (
+                      <Building2 className="w-8 h-8 text-[#37485b]" />
+                    ) : (
+                      <Shield className="w-8 h-8 text-[#37485b]" />
+                    )}
+                  </div>
+                  
+                  <h3 className="font-heading text-2xl font-bold text-slate-900">
+                    {srv.title}
+                  </h3>
+                  
+                  <p className="font-sans text-sm sm:text-base text-slate-600 leading-relaxed flex-grow">
+                    {srv.description}
+                  </p>
 
-              <div className="pt-2 border-t border-slate-100 space-y-2.5 font-sans text-sm font-medium text-slate-700">
-                <div className="flex items-center gap-2.5">
-                  <ChevronRight className="w-4 h-4 text-[#f97316] shrink-0" />
-                  <span>Pre-construction soil and foundation treatment</span>
-                </div>
-                <div className="flex items-center gap-2.5">
-                  <ChevronRight className="w-4 h-4 text-[#f97316] shrink-0" />
-                  <span>Warehouse pest management &amp; grain silos</span>
-                </div>
-                <div className="flex items-center gap-2.5">
-                  <ChevronRight className="w-4 h-4 text-[#f97316] shrink-0" />
-                  <span>EPA Ghana &amp; Health Ministry Compliance certification</span>
-                </div>
-              </div>
+                  {srv.features && srv.features.length > 0 && (
+                    <div className="pt-2 border-t border-slate-100 space-y-2.5 font-sans text-sm font-medium text-slate-700">
+                      {srv.features.map((feat, i) => (
+                        <div key={i} className="flex items-center gap-2.5">
+                          <ChevronRight className="w-4 h-4 text-[#f97316] shrink-0" />
+                          <span>{feat}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
 
-              <div className="pt-3">
-                <button
-                  type="button"
-                  onClick={() => handleScrollToQuote('fumigation')}
-                  className="w-full py-2.5 border border-slate-300 hover:border-orange-500 hover:text-orange-600 font-sans text-sm font-semibold rounded-md text-slate-800 transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
-                >
-                  <span>Book Fumigation Consultation</span>
-                  <ArrowRight className="w-4 h-4" />
-                </button>
-              </div>
-            </div>
-
-            {/* Property Management Card */}
-            <div className="bg-white rounded-xl p-8 border border-slate-200 shadow-sm flex flex-col space-y-5 hover:border-[#4f6073] transition-all group">
-              <div className="bg-[#cfe1f8]/60 w-16 h-16 rounded-full flex items-center justify-center text-[#4f6073] group-hover:bg-[#cfe1f8] transition-colors">
-                <Building2 className="w-8 h-8 text-[#37485b]" />
-              </div>
-              
-              <h3 className="font-heading text-2xl font-bold text-slate-900">
-                Property Management
-              </h3>
-              
-              <p className="font-sans text-sm sm:text-base text-slate-600 leading-relaxed flex-grow">
-                Comprehensive oversight of commercial and industrial real estate. We handle tenant relations, facility maintenance, security coordination, and financial reporting, ensuring your asset yields maximum return with minimum friction.
-              </p>
-
-              <div className="pt-2 border-t border-slate-100 space-y-2.5 font-sans text-sm font-medium text-slate-700">
-                <div className="flex items-center gap-2.5">
-                  <ChevronRight className="w-4 h-4 text-[#f97316] shrink-0" />
-                  <span>Facility maintenance &amp; HVAC/power scheduling</span>
+                  <div className="pt-3">
+                    <button
+                      type="button"
+                      onClick={() => handleScrollToQuote(srv.slug as any)}
+                      className="w-full py-2.5 border border-slate-300 hover:border-orange-500 hover:text-orange-600 font-sans text-sm font-semibold rounded-md text-slate-800 transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+                    >
+                      <span>Request {srv.title} Quote</span>
+                      <ArrowRight className="w-4 h-4" />
+                    </button>
+                  </div>
                 </div>
-                <div className="flex items-center gap-2.5">
-                  <ChevronRight className="w-4 h-4 text-[#f97316] shrink-0" />
-                  <span>Tenant vetting &amp; commercial lease management</span>
-                </div>
-                <div className="flex items-center gap-2.5">
-                  <ChevronRight className="w-4 h-4 text-[#f97316] shrink-0" />
-                  <span>24/7 Security coordination &amp; access control</span>
-                </div>
-              </div>
+              ))
+            ) : (
+              <>
+                {/* Fumigation Card */}
+                <div className="bg-white rounded-xl p-8 border border-slate-200 shadow-sm flex flex-col space-y-5 hover:border-[#4f6073] transition-all group">
+                  <div className="bg-[#cfe1f8]/60 w-16 h-16 rounded-full flex items-center justify-center text-[#4f6073] group-hover:bg-[#cfe1f8] transition-colors">
+                    <Bug className="w-8 h-8 text-[#37485b]" />
+                  </div>
+                  
+                  <h3 className="font-heading text-2xl font-bold text-slate-900">
+                    Industrial Fumigation
+                  </h3>
+                  
+                  <p className="font-sans text-sm sm:text-base text-slate-600 leading-relaxed flex-grow">
+                    Rigorous pest eradication and prevention for warehouses, construction sites, and commercial properties. We use industry-standard, safe protocols to protect your inventory and infrastructure from structural damage and contamination.
+                  </p>
 
-              <div className="pt-3">
-                <button
-                  type="button"
-                  onClick={() => handleScrollToQuote('management')}
-                  className="w-full py-2.5 border border-slate-300 hover:border-orange-500 hover:text-orange-600 font-sans text-sm font-semibold rounded-md text-slate-800 transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
-                >
-                  <span>Request Management Proposal</span>
-                  <ArrowRight className="w-4 h-4" />
-                </button>
-              </div>
-            </div>
+                  <div className="pt-2 border-t border-slate-100 space-y-2.5 font-sans text-sm font-medium text-slate-700">
+                    <div className="flex items-center gap-2.5">
+                      <ChevronRight className="w-4 h-4 text-[#f97316] shrink-0" />
+                      <span>Pre-construction soil and foundation treatment</span>
+                    </div>
+                    <div className="flex items-center gap-2.5">
+                      <ChevronRight className="w-4 h-4 text-[#f97316] shrink-0" />
+                      <span>Warehouse pest management &amp; grain silos</span>
+                    </div>
+                    <div className="flex items-center gap-2.5">
+                      <ChevronRight className="w-4 h-4 text-[#f97316] shrink-0" />
+                      <span>EPA Ghana &amp; Health Ministry Compliance certification</span>
+                    </div>
+                  </div>
+
+                  <div className="pt-3">
+                    <button
+                      type="button"
+                      onClick={() => handleScrollToQuote('fumigation')}
+                      className="w-full py-2.5 border border-slate-300 hover:border-orange-500 hover:text-orange-600 font-sans text-sm font-semibold rounded-md text-slate-800 transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+                    >
+                      <span>Book Fumigation Consultation</span>
+                      <ArrowRight className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Property Management Card */}
+                <div className="bg-white rounded-xl p-8 border border-slate-200 shadow-sm flex flex-col space-y-5 hover:border-[#4f6073] transition-all group">
+                  <div className="bg-[#cfe1f8]/60 w-16 h-16 rounded-full flex items-center justify-center text-[#4f6073] group-hover:bg-[#cfe1f8] transition-colors">
+                    <Building2 className="w-8 h-8 text-[#37485b]" />
+                  </div>
+                  
+                  <h3 className="font-heading text-2xl font-bold text-slate-900">
+                    Property Management
+                  </h3>
+                  
+                  <p className="font-sans text-sm sm:text-base text-slate-600 leading-relaxed flex-grow">
+                    Comprehensive oversight of commercial and industrial real estate. We handle tenant relations, facility maintenance, security coordination, and financial reporting, ensuring your asset yields maximum return with minimum friction.
+                  </p>
+
+                  <div className="pt-2 border-t border-slate-100 space-y-2.5 font-sans text-sm font-medium text-slate-700">
+                    <div className="flex items-center gap-2.5">
+                      <ChevronRight className="w-4 h-4 text-[#f97316] shrink-0" />
+                      <span>Facility maintenance &amp; HVAC/power scheduling</span>
+                    </div>
+                    <div className="flex items-center gap-2.5">
+                      <ChevronRight className="w-4 h-4 text-[#f97316] shrink-0" />
+                      <span>Tenant vetting &amp; commercial lease management</span>
+                    </div>
+                    <div className="flex items-center gap-2.5">
+                      <ChevronRight className="w-4 h-4 text-[#f97316] shrink-0" />
+                      <span>24/7 Security coordination &amp; access control</span>
+                    </div>
+                  </div>
+
+                  <div className="pt-3">
+                    <button
+                      type="button"
+                      onClick={() => handleScrollToQuote('management')}
+                      className="w-full py-2.5 border border-slate-300 hover:border-orange-500 hover:text-orange-600 font-sans text-sm font-semibold rounded-md text-slate-800 transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+                    >
+                      <span>Request Management Proposal</span>
+                      <ArrowRight className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              </>
+            )}
           </div>
         </section>
 
