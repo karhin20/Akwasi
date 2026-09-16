@@ -124,6 +124,7 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
   const [serviceFormCoverage, setServiceFormCoverage] = useState('');
   const [serviceFormIsActive, setServiceFormIsActive] = useState(true);
   const [isSavingService, setIsSavingService] = useState(false);
+  const [isUploadingServiceImage, setIsUploadingServiceImage] = useState(false);
 
   // System settings state
   const [exchangeRate, setExchangeRate] = useState<number>(11.06);
@@ -314,6 +315,26 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
       fetchServices();
     } catch {
       showToast('Failed to delete service');
+    }
+  };
+
+  const handleServiceImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files || e.target.files.length === 0) return;
+    const file = e.target.files[0];
+    setIsUploadingServiceImage(true);
+
+    try {
+      const res = await mediaApi.upload(file, 'akwasi/services');
+      if (res.url) {
+        setServiceFormImage(res.url);
+        showToast('Service image uploaded to Cloudinary!');
+      }
+    } catch (err) {
+      console.error('Service image upload error:', err);
+      showToast('Failed to upload image.');
+    } finally {
+      setIsUploadingServiceImage(false);
+      e.target.value = '';
     }
   };
 
@@ -2454,14 +2475,60 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
               </div>
 
               <div>
-                <label className="block text-slate-700 font-bold uppercase mb-1">Cover Image URL</label>
+                <label className="block text-slate-700 font-bold uppercase mb-1">Service Cover Image</label>
+                
+                {/* Upload Button + File Input */}
+                <div className="flex items-center gap-2 mb-2">
+                  <label className="flex-1 cursor-pointer">
+                    <div className="w-full px-3.5 py-2.5 bg-slate-100 hover:bg-slate-200 border border-slate-300 rounded-xl text-slate-700 font-bold flex items-center justify-center gap-2 transition-colors">
+                      {isUploadingServiceImage ? (
+                        <>
+                          <Loader2 className="w-4 h-4 animate-spin text-orange-500" />
+                          <span>Uploading to Cloudinary...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Upload className="w-4 h-4 text-orange-500" />
+                          <span>Upload Image from Device</span>
+                        </>
+                      )}
+                    </div>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleServiceImageUpload}
+                      disabled={isUploadingServiceImage}
+                      className="hidden"
+                    />
+                  </label>
+                </div>
+
+                {/* Direct Image URL input */}
                 <input
                   type="url"
-                  placeholder="https://images.unsplash.com/..."
+                  placeholder="Or paste image URL (e.g. https://images.unsplash.com/...)"
                   value={serviceFormImage}
                   onChange={(e) => setServiceFormImage(e.target.value)}
-                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 outline-none focus:border-orange-500 font-medium"
+                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 outline-none focus:border-orange-500 font-medium text-xs"
                 />
+
+                {/* Preview image if set */}
+                {serviceFormImage && (
+                  <div className="mt-3 relative w-full h-36 rounded-xl overflow-hidden border border-slate-300 group">
+                    <img src={serviceFormImage} alt="Service Cover Preview" className="w-full h-full object-cover" />
+                    <button
+                      type="button"
+                      onClick={() => setServiceFormImage('')}
+                      className="absolute top-2 right-2 p-1.5 bg-slate-900/80 hover:bg-red-600 text-white rounded-full transition-colors cursor-pointer"
+                      title="Remove Image"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                    <span className="absolute bottom-2 left-2 bg-slate-900/80 text-white text-[10px] px-2 py-0.5 rounded font-mono">
+                      Image Preview
+                    </span>
+                  </div>
+                )}
               </div>
 
               <div className="flex items-center gap-2 pt-2">
