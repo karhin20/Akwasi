@@ -212,6 +212,7 @@ export const services = {
     features?: string[];
     icon?: string;
     image?: string;
+    gallery?: string[];
     coverage?: string;
     isActive?: boolean;
   }) =>
@@ -229,6 +230,7 @@ export const services = {
       features: string[];
       icon: string;
       image: string;
+      gallery: string[];
       coverage: string;
       isActive: boolean;
     }>

@@ -95,6 +95,7 @@ export interface ServiceItem {
   features: string[];
   icon?: string;
   image?: string;
+  gallery?: string[];
   coverage?: string;
   isActive: boolean;
   createdAt?: string;

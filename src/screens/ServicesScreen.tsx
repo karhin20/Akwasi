@@ -11,7 +11,12 @@ import {
   Check, 
   Send, 
   ArrowRight,
-  PhoneCall
+  PhoneCall,
+  Camera,
+  X,
+  ChevronLeft,
+  ChevronRight as ChevronRightIcon,
+  ZoomIn
 } from 'lucide-react';
 import { ScreenType, ServiceItem } from '../types';
 import { enquiries as enquiriesApi, services as servicesApi } from '../lib/api';
@@ -33,6 +38,30 @@ export const ServicesScreen: React.FC<ServicesScreenProps> = ({
   const [details, setDetails] = useState('');
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Lightbox state
+  const [lightboxPhotos, setLightboxPhotos] = useState<string[]>([]);
+  const [lightboxIndex, setLightboxIndex] = useState(0);
+  const [lightboxServiceTitle, setLightboxServiceTitle] = useState('');
+
+  const openLightbox = (photos: string[], startIndex: number, serviceTitle: string) => {
+    setLightboxPhotos(photos);
+    setLightboxIndex(startIndex);
+    setLightboxServiceTitle(serviceTitle);
+  };
+
+  const closeLightbox = () => {
+    setLightboxPhotos([]);
+    setLightboxIndex(0);
+  };
+
+  const lightboxPrev = () => {
+    setLightboxIndex((i) => (i - 1 + lightboxPhotos.length) % lightboxPhotos.length);
+  };
+
+  const lightboxNext = () => {
+    setLightboxIndex((i) => (i + 1) % lightboxPhotos.length);
+  };
 
   React.useEffect(() => {
     servicesApi.getAll().then((data) => {
@@ -162,45 +191,91 @@ export const ServicesScreen: React.FC<ServicesScreenProps> = ({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8">
             {dynamicServices.length > 0 ? (
               dynamicServices.map((srv) => (
-                <div key={srv.id} className="bg-white rounded-xl p-8 border border-slate-200 shadow-sm flex flex-col space-y-5 hover:border-[#4f6073] transition-all group">
-                  <div className="bg-[#cfe1f8]/60 w-16 h-16 rounded-full flex items-center justify-center text-[#4f6073] group-hover:bg-[#cfe1f8] transition-colors">
-                    {srv.slug === 'fumigation' ? (
-                      <Bug className="w-8 h-8 text-[#37485b]" />
-                    ) : srv.slug === 'management' ? (
-                      <Building2 className="w-8 h-8 text-[#37485b]" />
-                    ) : (
-                      <Shield className="w-8 h-8 text-[#37485b]" />
-                    )}
-                  </div>
-                  
-                  <h3 className="font-heading text-2xl font-bold text-slate-900">
-                    {srv.title}
-                  </h3>
-                  
-                  <p className="font-sans text-sm sm:text-base text-slate-600 leading-relaxed flex-grow">
-                    {srv.description}
-                  </p>
-
-                  {srv.features && srv.features.length > 0 && (
-                    <div className="pt-2 border-t border-slate-100 space-y-2.5 font-sans text-sm font-medium text-slate-700">
-                      {srv.features.map((feat, i) => (
-                        <div key={i} className="flex items-center gap-2.5">
-                          <ChevronRight className="w-4 h-4 text-[#f97316] shrink-0" />
-                          <span>{feat}</span>
-                        </div>
-                      ))}
+                <div key={srv.id} className="bg-white rounded-xl border border-slate-200 shadow-sm flex flex-col hover:border-[#4f6073] transition-all group overflow-hidden">
+                  {/* Cover image strip */}
+                  {srv.image && (
+                    <div className="h-48 w-full overflow-hidden bg-slate-900 relative shrink-0">
+                      <img
+                        src={srv.image}
+                        alt={srv.title}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 opacity-90"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent pointer-events-none" />
                     </div>
                   )}
 
-                  <div className="pt-3">
-                    <button
-                      type="button"
-                      onClick={() => handleScrollToQuote(srv.slug as any)}
-                      className="w-full py-2.5 border border-slate-300 hover:border-orange-500 hover:text-orange-600 font-sans text-sm font-semibold rounded-md text-slate-800 transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
-                    >
-                      <span>Request {srv.title} Quote</span>
-                      <ArrowRight className="w-4 h-4" />
-                    </button>
+                  <div className="p-8 flex flex-col space-y-5 flex-grow">
+                    <div className="bg-[#cfe1f8]/60 w-16 h-16 rounded-full flex items-center justify-center text-[#4f6073] group-hover:bg-[#cfe1f8] transition-colors">
+                      {srv.slug === 'fumigation' ? (
+                        <Bug className="w-8 h-8 text-[#37485b]" />
+                      ) : srv.slug === 'management' ? (
+                        <Building2 className="w-8 h-8 text-[#37485b]" />
+                      ) : (
+                        <Shield className="w-8 h-8 text-[#37485b]" />
+                      )}
+                    </div>
+                    
+                    <h3 className="font-heading text-2xl font-bold text-slate-900">
+                      {srv.title}
+                    </h3>
+                    
+                    <p className="font-sans text-sm sm:text-base text-slate-600 leading-relaxed flex-grow">
+                      {srv.description}
+                    </p>
+
+                    {srv.features && srv.features.length > 0 && (
+                      <div className="pt-2 border-t border-slate-100 space-y-2.5 font-sans text-sm font-medium text-slate-700">
+                        {srv.features.map((feat, i) => (
+                          <div key={i} className="flex items-center gap-2.5">
+                            <ChevronRight className="w-4 h-4 text-[#f97316] shrink-0" />
+                            <span>{feat}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* ── Our Work Gallery ─────────────────────────────── */}
+                    {srv.gallery && srv.gallery.length > 0 && (
+                      <div className="pt-3 border-t border-slate-100 space-y-2">
+                        <div className="flex items-center gap-1.5">
+                          <Camera className="w-3.5 h-3.5 text-orange-500" />
+                          <span className="font-sans text-xs font-bold text-slate-500 uppercase tracking-wider">
+                            Our Work ({srv.gallery.length} photo{srv.gallery.length !== 1 ? 's' : ''})
+                          </span>
+                        </div>
+                        <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none">
+                          {srv.gallery.map((photoUrl, idx) => (
+                            <button
+                              key={idx}
+                              type="button"
+                              onClick={() => openLightbox(srv.gallery!, idx, srv.title)}
+                              className="relative shrink-0 w-20 h-20 rounded-lg overflow-hidden border border-slate-200 bg-slate-100 group/photo cursor-pointer"
+                              title={`View photo ${idx + 1}`}
+                            >
+                              <img
+                                src={photoUrl}
+                                alt={`${srv.title} work photo ${idx + 1}`}
+                                className="w-full h-full object-cover group-hover/photo:scale-110 transition-transform duration-300"
+                              />
+                              <div className="absolute inset-0 bg-black/0 group-hover/photo:bg-black/30 transition-colors flex items-center justify-center">
+                                <ZoomIn className="w-4 h-4 text-white opacity-0 group-hover/photo:opacity-100 transition-opacity" />
+                              </div>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="pt-3">
+                      <button
+                        type="button"
+                        onClick={() => handleScrollToQuote(srv.slug as any)}
+                        className="w-full py-2.5 border border-slate-300 hover:border-orange-500 hover:text-orange-600 font-sans text-sm font-semibold rounded-md text-slate-800 transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+                      >
+                        <span>Request {srv.title} Quote</span>
+                        <ArrowRight className="w-4 h-4" />
+                      </button>
+                    </div>
                   </div>
                 </div>
               ))
@@ -587,6 +662,88 @@ export const ServicesScreen: React.FC<ServicesScreenProps> = ({
         </section>
 
       </div>
+
+      {/* ── Gallery Lightbox ──────────────────────────────────────────── */}
+      {lightboxPhotos.length > 0 && (
+        <div
+          className="fixed inset-0 z-[9999] bg-black/95 backdrop-blur-sm flex items-center justify-center"
+          onClick={closeLightbox}
+        >
+          {/* Close button */}
+          <button
+            type="button"
+            onClick={closeLightbox}
+            className="absolute top-4 right-4 z-10 p-2.5 bg-white/10 hover:bg-white/20 text-white rounded-full transition-colors cursor-pointer"
+            title="Close"
+          >
+            <X className="w-6 h-6" />
+          </button>
+
+          {/* Service title + counter */}
+          <div className="absolute top-4 left-4 z-10">
+            <p className="text-white font-bold text-sm">{lightboxServiceTitle}</p>
+            <p className="text-white/60 text-xs mt-0.5">
+              {lightboxIndex + 1} / {lightboxPhotos.length}
+            </p>
+          </div>
+
+          {/* Prev button */}
+          {lightboxPhotos.length > 1 && (
+            <button
+              type="button"
+              onClick={(e) => { e.stopPropagation(); lightboxPrev(); }}
+              className="absolute left-4 z-10 p-3 bg-white/10 hover:bg-white/25 text-white rounded-full transition-colors cursor-pointer"
+              title="Previous"
+            >
+              <ChevronLeft className="w-6 h-6" />
+            </button>
+          )}
+
+          {/* Main photo */}
+          <div
+            className="max-w-5xl max-h-[85vh] w-full px-16"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <img
+              src={lightboxPhotos[lightboxIndex]}
+              alt={`${lightboxServiceTitle} work photo ${lightboxIndex + 1}`}
+              className="w-full h-full max-h-[85vh] object-contain rounded-xl shadow-2xl"
+            />
+          </div>
+
+          {/* Next button */}
+          {lightboxPhotos.length > 1 && (
+            <button
+              type="button"
+              onClick={(e) => { e.stopPropagation(); lightboxNext(); }}
+              className="absolute right-4 z-10 p-3 bg-white/10 hover:bg-white/25 text-white rounded-full transition-colors cursor-pointer"
+              title="Next"
+            >
+              <ChevronRightIcon className="w-6 h-6" />
+            </button>
+          )}
+
+          {/* Thumbnail strip */}
+          {lightboxPhotos.length > 1 && (
+            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 overflow-x-auto max-w-[90vw] px-4">
+              {lightboxPhotos.map((url, idx) => (
+                <button
+                  key={idx}
+                  type="button"
+                  onClick={(e) => { e.stopPropagation(); setLightboxIndex(idx); }}
+                  className={`shrink-0 w-14 h-14 rounded-lg overflow-hidden border-2 transition-all cursor-pointer ${
+                    idx === lightboxIndex
+                      ? 'border-white scale-110'
+                      : 'border-white/30 opacity-60 hover:opacity-100 hover:border-white/70'
+                  }`}
+                >
+                  <img src={url} alt={`Thumb ${idx + 1}`} className="w-full h-full object-cover" />
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 };

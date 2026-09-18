@@ -121,10 +121,12 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
   const [serviceFormFeatures, setServiceFormFeatures] = useState('');
   const [serviceFormIcon, setServiceFormIcon] = useState('ShieldCheck');
   const [serviceFormImage, setServiceFormImage] = useState('');
+  const [serviceFormGallery, setServiceFormGallery] = useState<string[]>([]);
   const [serviceFormCoverage, setServiceFormCoverage] = useState('');
   const [serviceFormIsActive, setServiceFormIsActive] = useState(true);
   const [isSavingService, setIsSavingService] = useState(false);
   const [isUploadingServiceImage, setIsUploadingServiceImage] = useState(false);
+  const [isUploadingGalleryImage, setIsUploadingGalleryImage] = useState(false);
 
   // System settings state
   const [exchangeRate, setExchangeRate] = useState<number>(11.06);
@@ -230,6 +232,7 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
     setServiceFormFeatures('');
     setServiceFormIcon('ShieldCheck');
     setServiceFormImage('');
+    setServiceFormGallery([]);
     setServiceFormCoverage('Ghana Nationwide');
     setServiceFormIsActive(true);
     setIsServiceModalOpen(true);
@@ -243,6 +246,7 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
     setServiceFormFeatures((srv.features || []).join('\n'));
     setServiceFormIcon(srv.icon || 'ShieldCheck');
     setServiceFormImage(srv.image || '');
+    setServiceFormGallery(Array.isArray(srv.gallery) ? srv.gallery : []);
     setServiceFormCoverage(srv.coverage || 'Ghana Nationwide');
     setServiceFormIsActive(srv.isActive);
     setIsServiceModalOpen(true);
@@ -270,6 +274,7 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
           features: featuresArray,
           icon: serviceFormIcon,
           image: serviceFormImage.trim(),
+          gallery: serviceFormGallery,
           coverage: serviceFormCoverage.trim(),
           isActive: serviceFormIsActive,
         });
@@ -282,6 +287,7 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
           features: featuresArray,
           icon: serviceFormIcon,
           image: serviceFormImage.trim(),
+          gallery: serviceFormGallery,
           coverage: serviceFormCoverage.trim(),
           isActive: serviceFormIsActive,
         });
@@ -336,6 +342,31 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
       setIsUploadingServiceImage(false);
       e.target.value = '';
     }
+  };
+
+  const handleGalleryImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files || e.target.files.length === 0) return;
+    const files = Array.from(e.target.files);
+    setIsUploadingGalleryImage(true);
+
+    try {
+      const results = await Promise.all(
+        files.map((file) => mediaApi.upload(file, 'akwasi/services/gallery'))
+      );
+      const newUrls = results.filter((r) => r.url).map((r) => r.url);
+      setServiceFormGallery((prev) => [...prev, ...newUrls]);
+      showToast(`${newUrls.length} work photo(s) uploaded!`);
+    } catch (err) {
+      console.error('Gallery upload error:', err);
+      showToast('Failed to upload one or more gallery images.');
+    } finally {
+      setIsUploadingGalleryImage(false);
+      e.target.value = '';
+    }
+  };
+
+  const handleRemoveGalleryImage = (index: number) => {
+    setServiceFormGallery((prev) => prev.filter((_, i) => i !== index));
   };
 
   const filteredSubscribers = subscribersList.filter((sub) => {
@@ -2478,7 +2509,7 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
                 <label className="block text-slate-700 font-bold uppercase mb-1">Service Cover Image</label>
                 
                 {/* Upload Button + File Input */}
-                <div className="flex items-center gap-2 mb-2">
+                <div className="flex items-center gap-2">
                   <label className="flex-1 cursor-pointer">
                     <div className="w-full px-3.5 py-2.5 bg-slate-100 hover:bg-slate-200 border border-slate-300 rounded-xl text-slate-700 font-bold flex items-center justify-center gap-2 transition-colors">
                       {isUploadingServiceImage ? (
@@ -2503,15 +2534,6 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
                   </label>
                 </div>
 
-                {/* Direct Image URL input */}
-                <input
-                  type="url"
-                  placeholder="Or paste image URL (e.g. https://images.unsplash.com/...)"
-                  value={serviceFormImage}
-                  onChange={(e) => setServiceFormImage(e.target.value)}
-                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 outline-none focus:border-orange-500 font-medium text-xs"
-                />
-
                 {/* Preview image if set */}
                 {serviceFormImage && (
                   <div className="mt-3 relative w-full h-36 rounded-xl overflow-hidden border border-slate-300 group">
@@ -2527,6 +2549,70 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
                     <span className="absolute bottom-2 left-2 bg-slate-900/80 text-white text-[10px] px-2 py-0.5 rounded font-mono">
                       Image Preview
                     </span>
+                  </div>
+                )}
+              </div>
+
+              {/* ── Work Photos Gallery ─────────────────────────────────── */}
+              <div>
+                <label className="block text-slate-700 font-bold uppercase mb-1">
+                  Work Photos / Project Gallery
+                  <span className="ml-2 text-[10px] font-medium text-slate-400 normal-case">(Select multiple)</span>
+                </label>
+
+                {/* Upload multiple gallery photos */}
+                <label className="flex-1 cursor-pointer block mb-3">
+                  <div className={`w-full px-3.5 py-2.5 border rounded-xl font-bold flex items-center justify-center gap-2 transition-colors ${
+                    isUploadingGalleryImage
+                      ? 'bg-orange-50 border-orange-300 text-orange-600'
+                      : 'bg-slate-100 hover:bg-slate-200 border-slate-300 text-slate-700'
+                  }`}>
+                    {isUploadingGalleryImage ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin text-orange-500" />
+                        <span>Uploading photos...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Upload className="w-4 h-4 text-orange-500" />
+                        <span>Upload Work Photos</span>
+                      </>
+                    )}
+                  </div>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    onChange={handleGalleryImageUpload}
+                    disabled={isUploadingGalleryImage}
+                    className="hidden"
+                  />
+                </label>
+
+                {/* Gallery thumbnail grid */}
+                {serviceFormGallery.length > 0 ? (
+                  <div className="grid grid-cols-3 gap-2">
+                    {serviceFormGallery.map((url, idx) => (
+                      <div key={idx} className="relative group aspect-square rounded-lg overflow-hidden border border-slate-200 bg-slate-100">
+                        <img src={url} alt={`Work photo ${idx + 1}`} className="w-full h-full object-cover" />
+                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors" />
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveGalleryImage(idx)}
+                          className="absolute top-1 right-1 p-1 bg-slate-900/80 hover:bg-red-600 text-white rounded-full opacity-0 group-hover:opacity-100 transition-all cursor-pointer"
+                          title="Remove photo"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                        <span className="absolute bottom-1 left-1 bg-slate-900/70 text-white text-[9px] px-1.5 py-0.5 rounded">
+                          {idx + 1}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="border-2 border-dashed border-slate-200 rounded-xl p-4 text-center text-slate-400 text-[11px]">
+                    No work photos yet — upload photos above to showcase project work
                   </div>
                 )}
               </div>
