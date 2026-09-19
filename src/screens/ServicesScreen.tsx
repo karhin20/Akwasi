@@ -194,13 +194,13 @@ export const ServicesScreen: React.FC<ServicesScreenProps> = ({
                 <div key={srv.id} className="bg-white rounded-xl border border-slate-200 shadow-sm flex flex-col hover:border-[#4f6073] transition-all group overflow-hidden">
                   {/* Cover image strip */}
                   {srv.image && (
-                    <div className="h-48 w-full overflow-hidden bg-slate-900 relative shrink-0">
+                    <div className="h-64 sm:h-72 w-full overflow-hidden bg-slate-900 relative shrink-0">
                       <img
                         src={srv.image}
                         alt={srv.title}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 opacity-90"
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 opacity-95"
                       />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent pointer-events-none" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent pointer-events-none" />
                     </div>
                   )}
 
@@ -234,32 +234,40 @@ export const ServicesScreen: React.FC<ServicesScreenProps> = ({
                       </div>
                     )}
 
-                    {/* ── Our Work Gallery ─────────────────────────────── */}
+                    {/* ── Our Work Gallery (Enlarged Preview) ─────────────────────────────── */}
                     {srv.gallery && srv.gallery.length > 0 && (
-                      <div className="pt-3 border-t border-slate-100 space-y-2">
-                        <div className="flex items-center gap-1.5">
-                          <Camera className="w-3.5 h-3.5 text-orange-500" />
-                          <span className="font-sans text-xs font-bold text-slate-500 uppercase tracking-wider">
-                            Our Work ({srv.gallery.length} photo{srv.gallery.length !== 1 ? 's' : ''})
-                          </span>
+                      <div className="pt-4 border-t border-slate-100 space-y-3">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-1.5">
+                            <Camera className="w-4 h-4 text-orange-500" />
+                            <span className="font-sans text-xs font-bold text-slate-700 uppercase tracking-wider">
+                              Recent Work Gallery ({srv.gallery.length} photo{srv.gallery.length !== 1 ? 's' : ''})
+                            </span>
+                          </div>
+                          <span className="text-[11px] text-slate-400 font-medium">Click photo to expand</span>
                         </div>
-                        <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none">
+                        <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-none snap-x">
                           {srv.gallery.map((photoUrl, idx) => (
                             <button
                               key={idx}
                               type="button"
                               onClick={() => openLightbox(srv.gallery!, idx, srv.title)}
-                              className="relative shrink-0 w-20 h-20 rounded-lg overflow-hidden border border-slate-200 bg-slate-100 group/photo cursor-pointer"
+                              className="relative shrink-0 w-36 h-36 sm:w-44 sm:h-44 rounded-xl overflow-hidden border border-slate-300 bg-slate-100 group/photo cursor-pointer shadow-xs hover:border-orange-500 transition-all snap-start"
                               title={`View photo ${idx + 1}`}
                             >
                               <img
                                 src={photoUrl}
                                 alt={`${srv.title} work photo ${idx + 1}`}
-                                className="w-full h-full object-cover group-hover/photo:scale-110 transition-transform duration-300"
+                                className="w-full h-full object-cover group-hover/photo:scale-105 transition-transform duration-300"
                               />
-                              <div className="absolute inset-0 bg-black/0 group-hover/photo:bg-black/30 transition-colors flex items-center justify-center">
-                                <ZoomIn className="w-4 h-4 text-white opacity-0 group-hover/photo:opacity-100 transition-opacity" />
+                              <div className="absolute inset-0 bg-black/0 group-hover/photo:bg-black/35 transition-colors flex items-center justify-center">
+                                <div className="bg-slate-900/80 p-2 rounded-full opacity-0 group-hover/photo:opacity-100 transition-opacity transform group-hover/photo:scale-110">
+                                  <ZoomIn className="w-5 h-5 text-white" />
+                                </div>
                               </div>
+                              <span className="absolute bottom-2 left-2 bg-slate-900/75 backdrop-blur-xs text-white text-[10px] font-bold px-2 py-0.5 rounded-md">
+                                Photo {idx + 1}
+                              </span>
                             </button>
                           ))}
                         </div>

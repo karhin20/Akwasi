@@ -122,6 +122,8 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
   const [serviceFormIcon, setServiceFormIcon] = useState('ShieldCheck');
   const [serviceFormImage, setServiceFormImage] = useState('');
   const [serviceFormGallery, setServiceFormGallery] = useState<string[]>([]);
+  const [pendingCoverFile, setPendingCoverFile] = useState<File | null>(null);
+  const [pendingCoverPreview, setPendingCoverPreview] = useState<string | null>(null);
   const [serviceFormCoverage, setServiceFormCoverage] = useState('');
   const [serviceFormIsActive, setServiceFormIsActive] = useState(true);
   const [isSavingService, setIsSavingService] = useState(false);
@@ -233,6 +235,9 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
     setServiceFormIcon('ShieldCheck');
     setServiceFormImage('');
     setServiceFormGallery([]);
+    if (pendingCoverPreview) URL.revokeObjectURL(pendingCoverPreview);
+    setPendingCoverFile(null);
+    setPendingCoverPreview(null);
     setServiceFormCoverage('Ghana Nationwide');
     setServiceFormIsActive(true);
     setIsServiceModalOpen(true);
@@ -247,6 +252,9 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
     setServiceFormIcon(srv.icon || 'ShieldCheck');
     setServiceFormImage(srv.image || '');
     setServiceFormGallery(Array.isArray(srv.gallery) ? srv.gallery : []);
+    if (pendingCoverPreview) URL.revokeObjectURL(pendingCoverPreview);
+    setPendingCoverFile(null);
+    setPendingCoverPreview(null);
     setServiceFormCoverage(srv.coverage || 'Ghana Nationwide');
     setServiceFormIsActive(srv.isActive);
     setIsServiceModalOpen(true);
@@ -324,23 +332,40 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
     }
   };
 
-  const handleServiceImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleCoverFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files || e.target.files.length === 0) return;
     const file = e.target.files[0];
+    setPendingCoverFile(file);
+    if (pendingCoverPreview) URL.revokeObjectURL(pendingCoverPreview);
+    setPendingCoverPreview(URL.createObjectURL(file));
+    e.target.value = '';
+  };
+
+  const handleCancelPendingCover = () => {
+    if (pendingCoverPreview) URL.revokeObjectURL(pendingCoverPreview);
+    setPendingCoverFile(null);
+    setPendingCoverPreview(null);
+    showToast('Selected picture cancelled.');
+  };
+
+  const handleUploadPendingCover = async () => {
+    if (!pendingCoverFile) return;
     setIsUploadingServiceImage(true);
 
     try {
-      const res = await mediaApi.upload(file, 'akwasi/services');
+      const res = await mediaApi.upload(pendingCoverFile, 'akwasi/services');
       if (res.url) {
         setServiceFormImage(res.url);
-        showToast('Service image uploaded to Cloudinary!');
+        showToast('Service cover picture uploaded!');
+        if (pendingCoverPreview) URL.revokeObjectURL(pendingCoverPreview);
+        setPendingCoverFile(null);
+        setPendingCoverPreview(null);
       }
     } catch (err) {
       console.error('Service image upload error:', err);
       showToast('Failed to upload image.');
     } finally {
       setIsUploadingServiceImage(false);
-      e.target.value = '';
     }
   };
 
@@ -2506,48 +2531,98 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
               </div>
 
               <div>
-                <label className="block text-slate-700 font-bold uppercase mb-1">Service Cover Image</label>
+                <label className="block text-slate-700 font-bold uppercase mb-1 flex items-center justify-between">
+                  <span>Service Cover Image (1st Picture)</span>
+                  {serviceFormImage && (
+                    <span className="text-[10px] text-emerald-600 font-semibold bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                      ✓ Active Cover Set
+                    </span>
+                  )}
+                </label>
                 
                 {/* Upload Button + File Input */}
                 <div className="flex items-center gap-2">
                   <label className="flex-1 cursor-pointer">
                     <div className="w-full px-3.5 py-2.5 bg-slate-100 hover:bg-slate-200 border border-slate-300 rounded-xl text-slate-700 font-bold flex items-center justify-center gap-2 transition-colors">
-                      {isUploadingServiceImage ? (
-                        <>
-                          <Loader2 className="w-4 h-4 animate-spin text-orange-500" />
-                          <span>Uploading to Cloudinary...</span>
-                        </>
-                      ) : (
-                        <>
-                          <Upload className="w-4 h-4 text-orange-500" />
-                          <span>Upload Image from Device</span>
-                        </>
-                      )}
+                      <Upload className="w-4 h-4 text-orange-500" />
+                      <span>{serviceFormImage ? 'Change Cover Picture' : 'Select Picture from Device'}</span>
                     </div>
                     <input
                       type="file"
                       accept="image/*"
-                      onChange={handleServiceImageUpload}
+                      onChange={handleCoverFileSelect}
                       disabled={isUploadingServiceImage}
                       className="hidden"
                     />
                   </label>
                 </div>
 
-                {/* Preview image if set */}
-                {serviceFormImage && (
-                  <div className="mt-3 relative w-full h-36 rounded-xl overflow-hidden border border-slate-300 group">
+                {/* Staged Pending Image Preview with Confirm & CANCEL options */}
+                {pendingCoverPreview && (
+                  <div className="mt-3 p-3 bg-orange-50/80 border border-orange-200 rounded-xl space-y-2">
+                    <div className="flex items-center justify-between text-xs font-bold text-orange-900">
+                      <span>Selected Picture Preview (Not Uploaded Yet)</span>
+                      <span className="text-[10px] font-mono text-orange-700">
+                        {pendingCoverFile?.size ? (pendingCoverFile.size / 1024 / 1024).toFixed(2) + ' MB' : ''}
+                      </span>
+                    </div>
+                    <div className="relative w-full h-40 rounded-lg overflow-hidden border border-orange-300">
+                      <img src={pendingCoverPreview} alt="Staged picture preview" className="w-full h-full object-cover" />
+                    </div>
+                    <div className="flex items-center gap-2 pt-1">
+                      <button
+                        type="button"
+                        onClick={handleUploadPendingCover}
+                        disabled={isUploadingServiceImage}
+                        className="flex-1 py-2 bg-orange-600 hover:bg-orange-700 text-white font-bold rounded-lg transition-colors flex items-center justify-center gap-1.5 cursor-pointer shadow-sm text-xs"
+                      >
+                        {isUploadingServiceImage ? (
+                          <>
+                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                            <span>Uploading to Cloudinary...</span>
+                          </>
+                        ) : (
+                          <>
+                            <Upload className="w-3.5 h-3.5" />
+                            <span>Upload Picture</span>
+                          </>
+                        )}
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={handleCancelPendingCover}
+                        disabled={isUploadingServiceImage}
+                        className="py-2 px-3 bg-red-600 hover:bg-red-700 text-white font-bold rounded-lg transition-colors flex items-center gap-1 cursor-pointer text-xs"
+                        title="Cancel this picture before upload"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                        <span>Cancel Picture</span>
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Active Cover Image preview with CANCEL / REMOVE option */}
+                {serviceFormImage && !pendingCoverPreview && (
+                  <div className="mt-3 relative w-full h-40 rounded-xl overflow-hidden border border-slate-300 group shadow-sm">
                     <img src={serviceFormImage} alt="Service Cover Preview" className="w-full h-full object-cover" />
-                    <button
-                      type="button"
-                      onClick={() => setServiceFormImage('')}
-                      className="absolute top-2 right-2 p-1.5 bg-slate-900/80 hover:bg-red-600 text-white rounded-full transition-colors cursor-pointer"
-                      title="Remove Image"
-                    >
-                      <X className="w-4 h-4" />
-                    </button>
+                    <div className="absolute top-2 right-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setServiceFormImage('');
+                          showToast('Cover picture removed/cancelled');
+                        }}
+                        className="px-2.5 py-1.5 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-lg shadow-md transition-colors flex items-center gap-1 cursor-pointer"
+                        title="Cancel / Remove 1st Picture"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                        <span>Cancel / Remove Picture</span>
+                      </button>
+                    </div>
                     <span className="absolute bottom-2 left-2 bg-slate-900/80 text-white text-[10px] px-2 py-0.5 rounded font-mono">
-                      Image Preview
+                      Current Cover Picture
                     </span>
                   </div>
                 )}
