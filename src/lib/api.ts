@@ -245,3 +245,29 @@ export const services = {
       method: 'DELETE',
     }, true),
 };
+
+// ─── Blog & News ────────────────────────────────────────────────────────────────
+export const blog = {
+  getAll: (includeDrafts = false) =>
+    request<import('../types').BlogPost[]>(`/blog${includeDrafts ? '?all=true' : ''}`),
+
+  getById: (id: string) =>
+    request<import('../types').BlogPost>(`/blog/${id}`),
+
+  create: (data: Partial<import('../types').BlogPost>) =>
+    request<import('../types').BlogPost>('/blog', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }, true),
+
+  update: (id: string, updates: Partial<import('../types').BlogPost>) =>
+    request<import('../types').BlogPost>(`/blog/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(updates),
+    }, true),
+
+  delete: (id: string) =>
+    request<{ success: boolean }>(`/blog/${id}`, {
+      method: 'DELETE',
+    }, true),
+};

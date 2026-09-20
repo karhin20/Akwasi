@@ -96,6 +96,18 @@ export const Header: React.FC<HeaderProps> = ({
               Services
             </button>
 
+            <button
+              id="nav-blog-btn"
+              onClick={() => onNavigate('blog')}
+              className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors cursor-pointer ${
+                currentScreen === 'blog'
+                  ? 'text-orange-500 font-semibold'
+                  : 'text-slate-700 hover:text-orange-500'
+              }`}
+            >
+              Blog &amp; Articles
+            </button>
+
           </nav>
         </div>
 
@@ -206,6 +218,17 @@ export const Header: React.FC<HeaderProps> = ({
               }`}
             >
               Services
+            </button>
+            <button
+              onClick={() => {
+                onNavigate('blog');
+                setMobileMenuOpen(false);
+              }}
+              className={`text-left p-2.5 rounded-lg text-sm font-medium transition-colors ${
+                currentScreen === 'blog' ? 'bg-orange-500 text-white font-semibold' : 'text-slate-800 hover:bg-slate-100'
+              }`}
+            >
+              Blog &amp; Articles
             </button>
           </div>
 

@@ -1,4 +1,4 @@
-export type ScreenType = 'home' | 'vehicles' | 'machinery' | 'properties' | 'services' | 'listing_detail' | 'admin';
+export type ScreenType = 'home' | 'vehicles' | 'machinery' | 'properties' | 'services' | 'blog' | 'listing_detail' | 'admin';
 
 export type CategoryType = 'vehicles' | 'machinery' | 'properties';
 
@@ -99,6 +99,25 @@ export interface ServiceItem {
   coverage?: string;
   isActive: boolean;
   createdAt?: string;
+}
+
+export interface BlogPost {
+  id: string;
+  title: string;
+  slug: string;
+  category: string;
+  excerpt: string;
+  content: string;
+  image: string;
+  gallery?: string[];
+  author: string;
+  authorRole?: string;
+  readTime?: string;
+  tags?: string[];
+  featured?: boolean;
+  published: boolean;
+  publishedAt: string;
+  views?: number;
 }
 
 export interface FilterState {

@@ -7,6 +7,7 @@ import { VehiclesScreen } from './screens/VehiclesScreen';
 import { MachineryScreen } from './screens/MachineryScreen';
 import { PropertiesScreen } from './screens/PropertiesScreen';
 import { ServicesScreen } from './screens/ServicesScreen';
+import { BlogScreen } from './screens/BlogScreen';
 import { ListingDetailScreen } from './screens/ListingDetailScreen';
 import { AdminScreen } from './screens/AdminScreen';
 import { PostListingModal } from './components/PostListingModal';
@@ -24,6 +25,7 @@ function screenToPath(screen: ScreenType, listingId?: string): string {
     case 'machinery': return '/machinery';
     case 'properties': return '/properties';
     case 'services': return '/services';
+    case 'blog': return '/blog';
     case 'admin': return '/admin';
     case 'listing_detail': return listingId ? `/listing/${listingId}` : '/';
     default: return '/';
@@ -36,6 +38,7 @@ function pathToScreen(path: string): { screen: ScreenType; listingId?: string } 
   if (path === '/machinery') return { screen: 'machinery' };
   if (path === '/properties') return { screen: 'properties' };
   if (path === '/services') return { screen: 'services' };
+  if (path === '/blog') return { screen: 'blog' };
   if (path === '/admin') return { screen: 'admin' };
   if (path.startsWith('/listing/')) {
     const parts = path.split('/');
@@ -157,6 +160,12 @@ export function App() {
         canonicalUrl: `https://akwasijob.com/listing/${selectedListing.id}`,
         ogImage: selectedListing.image,
       });
+    } else if (currentScreen === 'blog') {
+      updatePageSEO({
+        title: 'Market Insights, Technical Guides & Industry News | AkwasiJob',
+        description: 'Read expert articles on heavy equipment maintenance, EPA fumigation compliance, vehicle selection, and real estate market trends in Ghana.',
+        canonicalUrl: 'https://akwasijob.com/blog',
+      });
     } else if (currentScreen === 'admin') {
       updatePageSEO({
         title: 'Admin Portal | AkwasiJob Marketplace',
@@ -272,6 +281,12 @@ export function App() {
 
         {currentScreen === 'services' && (
           <ServicesScreen
+            onNavigate={navigate}
+          />
+        )}
+
+        {currentScreen === 'blog' && (
+          <BlogScreen
             onNavigate={navigate}
           />
         )}

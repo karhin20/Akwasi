@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { ListingItem, ScreenType, EnquiryItem, SubscriberItem, ServiceItem } from '../types';
+import { ListingItem, ScreenType, EnquiryItem, SubscriberItem, ServiceItem, BlogPost } from '../types';
 import {
   Plus,
   Search,
@@ -42,6 +42,9 @@ import {
   ToggleLeft,
   ToggleRight,
   Layers,
+  BookOpen,
+  FileText,
+  Tag,
 } from 'lucide-react';
 import {
   auth,
@@ -52,6 +55,7 @@ import {
   subscriptions as subscriptionsApi,
   sms as smsApi,
   services as servicesApi,
+  blog as blogApi,
 } from '../lib/api';
 import { Upload, X, MapPin, Calendar, Gauge, Fuel, ShieldAlert } from 'lucide-react';
 
@@ -80,7 +84,7 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
   const [currentAdminUser, setCurrentAdminUser] = useState<string | null>(null);
 
   // Portal State
-  const [activeTab, setActiveTab] = useState<'overview' | 'listings' | 'enquiries' | 'subscribers' | 'services' | 'settings'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'listings' | 'enquiries' | 'subscribers' | 'services' | 'settings' | 'blog'>('overview');
   const [searchQuery, setSearchQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<string>('all');
@@ -129,6 +133,29 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
   const [isSavingService, setIsSavingService] = useState(false);
   const [isUploadingServiceImage, setIsUploadingServiceImage] = useState(false);
   const [isUploadingGalleryImage, setIsUploadingGalleryImage] = useState(false);
+
+  // Blog State
+  const [blogList, setBlogList] = useState<BlogPost[]>([]);
+  const [blogLoading, setBlogLoading] = useState(false);
+  const [isBlogModalOpen, setIsBlogModalOpen] = useState(false);
+  const [editingBlogId, setEditingBlogId] = useState<string | null>(null);
+  const [blogFormTitle, setBlogFormTitle] = useState('');
+  const [blogFormCategory, setBlogFormCategory] = useState('Industry News');
+  const [blogFormAuthor, setBlogFormAuthor] = useState('Admin');
+  const [blogFormAuthorRole, setBlogFormAuthorRole] = useState('Senior Contributor');
+  const [blogFormReadTime, setBlogFormReadTime] = useState('4 min read');
+  const [blogFormExcerpt, setBlogFormExcerpt] = useState('');
+  const [blogFormContent, setBlogFormContent] = useState('');
+  const [blogFormImage, setBlogFormImage] = useState('');
+  const [blogFormGallery, setBlogFormGallery] = useState<string[]>([]);
+  const [blogFormTags, setBlogFormTags] = useState('');
+  const [blogFormFeatured, setBlogFormFeatured] = useState(false);
+  const [blogFormPublished, setBlogFormPublished] = useState(true);
+  const [pendingBlogCoverFile, setPendingBlogCoverFile] = useState<File | null>(null);
+  const [pendingBlogCoverPreview, setPendingBlogCoverPreview] = useState<string | null>(null);
+  const [isUploadingBlogCover, setIsUploadingBlogCover] = useState(false);
+  const [isUploadingBlogGallery, setIsUploadingBlogGallery] = useState(false);
+  const [isSavingBlog, setIsSavingBlog] = useState(false);
 
   // System settings state
   const [exchangeRate, setExchangeRate] = useState<number>(11.06);
@@ -217,13 +244,26 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
     }
   };
 
+  const fetchBlogPosts = useCallback(async () => {
+    try {
+      setBlogLoading(true);
+      const data = await blogApi.getAll(true);
+      setBlogList(data as BlogPost[]);
+    } catch (err) {
+      console.error('Failed to fetch blog posts:', err);
+    } finally {
+      setBlogLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
     if (isAuthenticated) {
       fetchEnquiries();
       fetchSubscribers();
       fetchServices();
+      fetchBlogPosts();
     }
-  }, [isAuthenticated, fetchEnquiries, fetchSubscribers, fetchServices]);
+  }, [isAuthenticated, fetchEnquiries, fetchSubscribers, fetchServices, fetchBlogPosts]);
 
   // ── Service Handlers ──
   const handleOpenCreateService = () => {
@@ -392,6 +432,198 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
 
   const handleRemoveGalleryImage = (index: number) => {
     setServiceFormGallery((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  // ── Blog Handlers ──
+  const handleOpenCreateBlog = () => {
+    setEditingBlogId(null);
+    setBlogFormTitle('');
+    setBlogFormCategory('Industry News');
+    setBlogFormAuthor(currentAdminUser || 'Admin');
+    setBlogFormAuthorRole('Senior Contributor');
+    setBlogFormReadTime('4 min read');
+    setBlogFormExcerpt('');
+    setBlogFormContent('');
+    setBlogFormImage('');
+    setBlogFormGallery([]);
+    setBlogFormTags('');
+    setBlogFormFeatured(false);
+    setBlogFormPublished(true);
+    if (pendingBlogCoverPreview) URL.revokeObjectURL(pendingBlogCoverPreview);
+    setPendingBlogCoverFile(null);
+    setPendingBlogCoverPreview(null);
+    setIsBlogModalOpen(true);
+  };
+
+  const handleOpenEditBlog = (post: BlogPost) => {
+    setEditingBlogId(post.id);
+    setBlogFormTitle(post.title);
+    setBlogFormCategory(post.category || 'Industry News');
+    setBlogFormAuthor(post.author || 'Admin');
+    setBlogFormAuthorRole(post.authorRole || 'Author');
+    setBlogFormReadTime(post.readTime || '4 min read');
+    setBlogFormExcerpt(post.excerpt || '');
+    setBlogFormContent(post.content || '');
+    setBlogFormImage(post.image || '');
+    setBlogFormGallery(Array.isArray(post.gallery) ? post.gallery : []);
+    setBlogFormTags(Array.isArray(post.tags) ? post.tags.join(', ') : '');
+    setBlogFormFeatured(Boolean(post.featured));
+    setBlogFormPublished(post.published !== false);
+    if (pendingBlogCoverPreview) URL.revokeObjectURL(pendingBlogCoverPreview);
+    setPendingBlogCoverFile(null);
+    setPendingBlogCoverPreview(null);
+    setIsBlogModalOpen(true);
+  };
+
+  const handleSaveBlog = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!blogFormTitle.trim() || !blogFormContent.trim()) {
+      showToast('Title and Article Content are required.');
+      return;
+    }
+
+    const tagsArray = blogFormTags
+      .split(',')
+      .map((t) => t.trim().replace(/^#/, ''))
+      .filter(Boolean);
+
+    setIsSavingBlog(true);
+    try {
+      if (editingBlogId) {
+        await blogApi.update(editingBlogId, {
+          title: blogFormTitle.trim(),
+          category: blogFormCategory,
+          author: blogFormAuthor.trim(),
+          authorRole: blogFormAuthorRole.trim(),
+          readTime: blogFormReadTime.trim(),
+          excerpt: blogFormExcerpt.trim(),
+          content: blogFormContent.trim(),
+          image: blogFormImage.trim(),
+          gallery: blogFormGallery,
+          tags: tagsArray,
+          featured: blogFormFeatured,
+          published: blogFormPublished,
+        });
+        showToast('Blog article updated!');
+      } else {
+        await blogApi.create({
+          title: blogFormTitle.trim(),
+          category: blogFormCategory,
+          author: blogFormAuthor.trim(),
+          authorRole: blogFormAuthorRole.trim(),
+          readTime: blogFormReadTime.trim(),
+          excerpt: blogFormExcerpt.trim(),
+          content: blogFormContent.trim(),
+          image: blogFormImage.trim(),
+          gallery: blogFormGallery,
+          tags: tagsArray,
+          featured: blogFormFeatured,
+          published: blogFormPublished,
+        });
+        showToast('New blog article published!');
+      }
+      setIsBlogModalOpen(false);
+      fetchBlogPosts();
+    } catch (err) {
+      showToast('Failed to save blog article.');
+    } finally {
+      setIsSavingBlog(false);
+    }
+  };
+
+  const handleToggleBlogPublish = async (post: BlogPost) => {
+    try {
+      const nextStatus = !post.published;
+      await blogApi.update(post.id, { published: nextStatus });
+      showToast(`Article status updated to ${nextStatus ? 'Live' : 'Draft'}`);
+      fetchBlogPosts();
+    } catch {
+      showToast('Failed to update article status');
+    }
+  };
+
+  const handleToggleBlogFeatured = async (post: BlogPost) => {
+    try {
+      const nextFeatured = !post.featured;
+      await blogApi.update(post.id, { featured: nextFeatured });
+      showToast(nextFeatured ? 'Article set as Featured Hero' : 'Featured status removed');
+      fetchBlogPosts();
+    } catch {
+      showToast('Failed to update featured status');
+    }
+  };
+
+  const handleDeleteBlog = async (id: string, title: string) => {
+    if (!window.confirm(`Are you sure you want to delete article "${title}"?`)) return;
+    try {
+      await blogApi.delete(id);
+      showToast('Article deleted');
+      fetchBlogPosts();
+    } catch {
+      showToast('Failed to delete article');
+    }
+  };
+
+  const handleBlogCoverSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files || e.target.files.length === 0) return;
+    const file = e.target.files[0];
+    setPendingBlogCoverFile(file);
+    if (pendingBlogCoverPreview) URL.revokeObjectURL(pendingBlogCoverPreview);
+    setPendingBlogCoverPreview(URL.createObjectURL(file));
+    e.target.value = '';
+  };
+
+  const handleCancelPendingBlogCover = () => {
+    if (pendingBlogCoverPreview) URL.revokeObjectURL(pendingBlogCoverPreview);
+    setPendingBlogCoverFile(null);
+    setPendingBlogCoverPreview(null);
+    showToast('Cover image selection cancelled');
+  };
+
+  const handleUploadPendingBlogCover = async () => {
+    if (!pendingBlogCoverFile) return;
+    setIsUploadingBlogCover(true);
+
+    try {
+      const res = await mediaApi.upload(pendingBlogCoverFile, 'akwasi/blog');
+      if (res.url) {
+        setBlogFormImage(res.url);
+        showToast('Blog cover image uploaded!');
+        if (pendingBlogCoverPreview) URL.revokeObjectURL(pendingBlogCoverPreview);
+        setPendingBlogCoverFile(null);
+        setPendingBlogCoverPreview(null);
+      }
+    } catch (err) {
+      console.error('Blog cover upload error:', err);
+      showToast('Failed to upload blog cover image.');
+    } finally {
+      setIsUploadingBlogCover(false);
+    }
+  };
+
+  const handleBlogGalleryUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files || e.target.files.length === 0) return;
+    const files = Array.from(e.target.files);
+    setIsUploadingBlogGallery(true);
+
+    try {
+      const results = await Promise.all(
+        files.map((file) => mediaApi.upload(file, 'akwasi/blog/attachments'))
+      );
+      const newUrls = results.filter((r) => r.url).map((r) => r.url);
+      setBlogFormGallery((prev) => [...prev, ...newUrls]);
+      showToast(`${newUrls.length} picture(s) attached to article!`);
+    } catch (err) {
+      console.error('Blog attachment upload error:', err);
+      showToast('Failed to upload attachment.');
+    } finally {
+      setIsUploadingBlogGallery(false);
+      e.target.value = '';
+    }
+  };
+
+  const handleRemoveBlogGalleryImage = (index: number) => {
+    setBlogFormGallery((prev) => prev.filter((_, i) => i !== index));
   };
 
   const filteredSubscribers = subscribersList.filter((sub) => {
@@ -908,6 +1140,18 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
           >
             <Wrench className="w-4 h-4 text-orange-500" />
             <span>Enterprise Services ({servicesList.length})</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('blog')}
+            className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap flex items-center gap-2 ${
+              activeTab === 'blog'
+                ? 'bg-slate-900 text-white shadow-xs'
+                : 'bg-white text-slate-600 hover:bg-slate-200/70 border border-slate-200'
+            }`}
+          >
+            <BookOpen className="w-4 h-4 text-orange-500" />
+            <span>Blog &amp; Articles ({blogList.length})</span>
           </button>
 
           <button
@@ -2726,6 +2970,311 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
                     </>
                   ) : (
                     <span>{editingServiceId ? 'Update Service' : 'Create Service'}</span>
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ── BLOG CREATE / EDIT ARTICLE MODAL ───────────────────────────────────── */}
+      {isBlogModalOpen && (
+        <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-white w-full max-w-2xl rounded-2xl shadow-2xl border border-slate-200 overflow-hidden my-8 max-h-[90vh] flex flex-col">
+            <div className="flex items-center justify-between p-5 border-b border-slate-200 bg-slate-900 text-white shrink-0">
+              <h3 className="font-bold text-base text-white flex items-center gap-2">
+                <BookOpen className="w-5 h-5 text-orange-500" />
+                <span>{editingBlogId ? 'Edit Article & Update' : 'Post New Blog Article'}</span>
+              </h3>
+              <button
+                onClick={() => setIsBlogModalOpen(false)}
+                className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveBlog} className="p-6 space-y-4 text-xs overflow-y-auto flex-grow">
+              <div>
+                <label className="block text-slate-700 font-bold uppercase mb-1">Article Title *</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Essential Pre-Purchase Inspection Checklist for Heavy Machinery in Ghana"
+                  value={blogFormTitle}
+                  onChange={(e) => setBlogFormTitle(e.target.value)}
+                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 outline-none focus:border-orange-500 font-medium text-sm"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div>
+                  <label className="block text-slate-700 font-bold uppercase mb-1">Category</label>
+                  <select
+                    value={blogFormCategory}
+                    onChange={(e) => setBlogFormCategory(e.target.value)}
+                    className="w-full px-3 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 outline-none focus:border-orange-500 font-medium"
+                  >
+                    <option value="Industry News">Industry News</option>
+                    <option value="Machinery & Equipment">Machinery &amp; Equipment</option>
+                    <option value="Pest Control & Fumigation">Pest Control &amp; Fumigation</option>
+                    <option value="Real Estate & Properties">Real Estate &amp; Properties</option>
+                    <option value="Company Updates">Company Updates</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-slate-700 font-bold uppercase mb-1">Author Name</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Ing. Kwame Mensah"
+                    value={blogFormAuthor}
+                    onChange={(e) => setBlogFormAuthor(e.target.value)}
+                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 outline-none focus:border-orange-500 font-medium"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-slate-700 font-bold uppercase mb-1">Estimated Read Time</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. 5 min read"
+                    value={blogFormReadTime}
+                    onChange={(e) => setBlogFormReadTime(e.target.value)}
+                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 outline-none focus:border-orange-500 font-medium"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-slate-700 font-bold uppercase mb-1">Excerpt / Short Summary *</label>
+                <textarea
+                  rows={2}
+                  required
+                  placeholder="A concise 1-2 sentence preview summary displayed on article cards..."
+                  value={blogFormExcerpt}
+                  onChange={(e) => setBlogFormExcerpt(e.target.value)}
+                  className="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 outline-none focus:border-orange-500 font-medium resize-none leading-relaxed"
+                />
+              </div>
+
+              <div>
+                <label className="block text-slate-700 font-bold uppercase mb-1">Full Article Body Content *</label>
+                <p className="text-[10px] text-slate-400 mb-1">Tip: Use double line breaks between paragraphs. Use '### Section Title' for subheaders.</p>
+                <textarea
+                  rows={8}
+                  required
+                  placeholder="Write the full body of your article here..."
+                  value={blogFormContent}
+                  onChange={(e) => setBlogFormContent(e.target.value)}
+                  className="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 outline-none focus:border-orange-500 font-sans text-xs leading-relaxed resize-y"
+                />
+              </div>
+
+              {/* Cover Image Upload with Staging & Cancel */}
+              <div>
+                <label className="block text-slate-700 font-bold uppercase mb-1 flex items-center justify-between">
+                  <span>Main Article Cover Picture</span>
+                  {blogFormImage && (
+                    <span className="text-[10px] text-emerald-600 font-semibold bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                      ✓ Cover Set
+                    </span>
+                  )}
+                </label>
+
+                <div className="flex items-center gap-2">
+                  <label className="flex-1 cursor-pointer">
+                    <div className="w-full px-3.5 py-2.5 bg-slate-100 hover:bg-slate-200 border border-slate-300 rounded-xl text-slate-700 font-bold flex items-center justify-center gap-2 transition-colors">
+                      <Upload className="w-4 h-4 text-orange-500" />
+                      <span>{blogFormImage ? 'Change Cover Picture' : 'Select Cover Picture from Device'}</span>
+                    </div>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleBlogCoverSelect}
+                      disabled={isUploadingBlogCover}
+                      className="hidden"
+                    />
+                  </label>
+                </div>
+
+                {/* Staged pending cover image preview */}
+                {pendingBlogCoverPreview && (
+                  <div className="mt-3 p-3 bg-orange-50/80 border border-orange-200 rounded-xl space-y-2">
+                    <div className="flex items-center justify-between text-xs font-bold text-orange-900">
+                      <span>Selected Cover Preview (Not Uploaded Yet)</span>
+                      <span className="text-[10px] font-mono text-orange-700">
+                        {pendingBlogCoverFile?.size ? (pendingBlogCoverFile.size / 1024 / 1024).toFixed(2) + ' MB' : ''}
+                      </span>
+                    </div>
+                    <div className="relative w-full h-40 rounded-lg overflow-hidden border border-orange-300">
+                      <img src={pendingBlogCoverPreview} alt="Staged cover preview" className="w-full h-full object-cover" />
+                    </div>
+                    <div className="flex items-center gap-2 pt-1">
+                      <button
+                        type="button"
+                        onClick={handleUploadPendingBlogCover}
+                        disabled={isUploadingBlogCover}
+                        className="flex-1 py-2 bg-orange-600 hover:bg-orange-700 text-white font-bold rounded-lg transition-colors flex items-center justify-center gap-1.5 cursor-pointer text-xs"
+                      >
+                        {isUploadingBlogCover ? (
+                          <>
+                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                            <span>Uploading to Cloudinary...</span>
+                          </>
+                        ) : (
+                          <>
+                            <Upload className="w-3.5 h-3.5" />
+                            <span>Upload Cover Picture</span>
+                          </>
+                        )}
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={handleCancelPendingBlogCover}
+                        disabled={isUploadingBlogCover}
+                        className="py-2 px-3 bg-red-600 hover:bg-red-700 text-white font-bold rounded-lg transition-colors flex items-center gap-1 cursor-pointer text-xs"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                        <span>Cancel Picture</span>
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Active Cover Image Preview */}
+                {blogFormImage && !pendingBlogCoverPreview && (
+                  <div className="mt-3 relative w-full h-40 rounded-xl overflow-hidden border border-slate-300 group shadow-sm">
+                    <img src={blogFormImage} alt="Article Cover Preview" className="w-full h-full object-cover" />
+                    <div className="absolute top-2 right-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setBlogFormImage('');
+                          showToast('Blog cover picture removed');
+                        }}
+                        className="px-2.5 py-1.5 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-lg shadow-md transition-colors flex items-center gap-1 cursor-pointer"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                        <span>Cancel / Remove Picture</span>
+                      </button>
+                    </div>
+                    <span className="absolute bottom-2 left-2 bg-slate-900/80 text-white text-[10px] px-2 py-0.5 rounded font-mono">
+                      Current Article Cover Picture
+                    </span>
+                  </div>
+                )}
+              </div>
+
+              {/* Extra Article Pictures / Diagrams Attachment */}
+              <div>
+                <label className="block text-slate-700 font-bold uppercase mb-1">
+                  Attached Article Pictures &amp; Diagrams
+                  <span className="ml-2 text-[10px] font-medium text-slate-400 normal-case">(Select multiple)</span>
+                </label>
+
+                <label className="flex-1 cursor-pointer block mb-3">
+                  <div className={`w-full px-3.5 py-2.5 border rounded-xl font-bold flex items-center justify-center gap-2 transition-colors ${
+                    isUploadingBlogGallery
+                      ? 'bg-orange-50 border-orange-300 text-orange-600'
+                      : 'bg-slate-100 hover:bg-slate-200 border-slate-300 text-slate-700'
+                  }`}>
+                    {isUploadingBlogGallery ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin text-orange-500" />
+                        <span>Uploading pictures...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Upload className="w-4 h-4 text-orange-500" />
+                        <span>Upload Attached Pictures</span>
+                      </>
+                    )}
+                  </div>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    onChange={handleBlogGalleryUpload}
+                    disabled={isUploadingBlogGallery}
+                    className="hidden"
+                  />
+                </label>
+
+                {blogFormGallery.length > 0 && (
+                  <div className="grid grid-cols-3 gap-2">
+                    {blogFormGallery.map((url, idx) => (
+                      <div key={idx} className="relative group aspect-square rounded-lg overflow-hidden border border-slate-200 bg-slate-100">
+                        <img src={url} alt={`Attachment ${idx + 1}`} className="w-full h-full object-cover" />
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveBlogGalleryImage(idx)}
+                          className="absolute top-1 right-1 p-1 bg-slate-900/80 hover:bg-red-600 text-white rounded-full opacity-0 group-hover:opacity-100 transition-all cursor-pointer"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-slate-700 font-bold uppercase mb-1">Tags (Comma separated)</label>
+                <input
+                  type="text"
+                  placeholder="e.g. Heavy Machinery, Inspection, CAT, Ghana Customs"
+                  value={blogFormTags}
+                  onChange={(e) => setBlogFormTags(e.target.value)}
+                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 outline-none focus:border-orange-500 font-medium"
+                />
+              </div>
+
+              <div className="flex items-center gap-6 pt-2">
+                <label className="flex items-center gap-2 cursor-pointer text-slate-800 font-bold">
+                  <input
+                    type="checkbox"
+                    checked={blogFormFeatured}
+                    onChange={(e) => setBlogFormFeatured(e.target.checked)}
+                    className="w-4 h-4 text-orange-600 border-slate-300 rounded focus:ring-orange-500 cursor-pointer"
+                  />
+                  <span>Featured Hero Article</span>
+                </label>
+
+                <label className="flex items-center gap-2 cursor-pointer text-slate-800 font-bold">
+                  <input
+                    type="checkbox"
+                    checked={blogFormPublished}
+                    onChange={(e) => setBlogFormPublished(e.target.checked)}
+                    className="w-4 h-4 text-emerald-600 border-slate-300 rounded focus:ring-emerald-500 cursor-pointer"
+                  />
+                  <span>Live &amp; Published</span>
+                </label>
+              </div>
+
+              <div className="pt-4 border-t border-slate-200 flex justify-end gap-2 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => setIsBlogModalOpen(false)}
+                  className="px-4 py-2.5 rounded-xl border border-slate-300 text-slate-700 font-bold hover:bg-slate-100 transition-colors cursor-pointer"
+                >
+                  Cancel
+                </button>
+
+                <button
+                  type="submit"
+                  disabled={isSavingBlog}
+                  className="px-6 py-2.5 bg-orange-600 hover:bg-orange-500 text-white font-bold rounded-xl shadow-md transition-all cursor-pointer flex items-center gap-2 disabled:opacity-50"
+                >
+                  {isSavingBlog ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <span>Saving Article...</span>
+                    </>
+                  ) : (
+                    <span>{editingBlogId ? 'Update Article' : 'Publish Article'}</span>
                   )}
                 </button>
               </div>
