@@ -1,13 +1,16 @@
-export type ScreenType = 'home' | 'vehicles' | 'machinery' | 'properties' | 'services' | 'blog' | 'listing_detail' | 'admin';
+export type ScreenType = 'home' | 'vehicles' | 'machinery' | 'properties' | 'services' | 'blog' | 'listing_detail' | 'admin' | 'marketplace';
 
-export type CategoryType = 'vehicles' | 'machinery' | 'properties';
+export type CategoryType = 'vehicles' | 'machinery' | 'properties' | 'general_goods';
+
+export type MarketplaceSubCategory = 'Car Parts' | 'Car Rentals' | 'Electronics' | 'Other';
+export type MarketplaceListingType = 'For Sale' | 'For Rent' | 'Service';
 
 export type VehicleBodyType = 'all' | 'suv' | 'sedan' | 'pickup' | 'truck' | 'heavy';
 
 export interface ListingItem {
   id: string;
   title: string;
-  category: 'cars_vehicles' | 'heavy_machinery' | 'properties';
+  category: 'cars_vehicles' | 'heavy_machinery' | 'properties' | 'general_goods';
   subCategory?: string;
   status?: 'published' | 'pending' | 'draft' | 'rejected';
   price: number;

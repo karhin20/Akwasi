@@ -17,7 +17,7 @@ export const PostListingModal: React.FC<PostListingModalProps> = ({
   onClose,
   onAddListing,
 }) => {
-  const [category, setCategory] = useState<'cars_vehicles' | 'heavy_machinery' | 'properties'>('cars_vehicles');
+  const [category, setCategory] = useState<'cars_vehicles' | 'heavy_machinery' | 'properties' | 'general_goods'>('cars_vehicles');
   const [title, setTitle] = useState('');
   const [price, setPrice] = useState('');
   const [location, setLocation] = useState('Accra');
@@ -54,6 +54,9 @@ export const PostListingModal: React.FC<PostListingModalProps> = ({
   const [parking, setParking] = useState('');
   const [pricePeriod, setPricePeriod] = useState('');
 
+  // General Goods / Marketplace specific
+  const [listingType, setListingType] = useState<'For Sale' | 'For Rent' | 'Service'>('For Sale');
+
   // Image upload state
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
@@ -71,6 +74,7 @@ export const PostListingModal: React.FC<PostListingModalProps> = ({
     setPropertyType('Apartment'); setTransactionType('For Sale');
     setBeds(''); setBaths(''); setSqm(''); setFloors(''); setParking(''); setPricePeriod('');
     setCondition('Excellent Condition');
+    setListingType('For Sale');
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -140,6 +144,8 @@ export const PostListingModal: React.FC<PostListingModalProps> = ({
             ? 'https://images.unsplash.com/photo-1581094794329-c8112a89af12?auto=format&fit=crop&w=1200&q=80'
             : category === 'properties'
             ? 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80'
+            : category === 'general_goods'
+            ? 'https://images.unsplash.com/photo-1491553895911-0055eca6402d?auto=format&fit=crop&w=1200&q=80'
             : 'https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?auto=format&fit=crop&w=1200&q=80';
         gallery = [mainImage];
       }
@@ -220,6 +226,11 @@ export const PostListingModal: React.FC<PostListingModalProps> = ({
             { label: 'Baths', value: baths || 'N/A', icon: 'bathtub' },
             { label: 'Size', value: sqm ? `${sqm} sqm` : 'N/A', icon: 'square_foot' },
           ],
+        });
+      } else if (category === 'general_goods') {
+        Object.assign(payload, {
+          listingType,
+          pricePeriod: listingType === 'For Rent' ? '/ day' : undefined,
         });
       }
 
@@ -471,8 +482,8 @@ export const PostListingModal: React.FC<PostListingModalProps> = ({
               <label className="block text-xs font-bold uppercase text-slate-500 mb-2">
                 Listing Category
               </label>
-              <div className="grid grid-cols-3 gap-2">
-                {(['cars_vehicles', 'heavy_machinery', 'properties'] as const).map((cat) => (
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                {(['cars_vehicles', 'heavy_machinery', 'properties', 'general_goods'] as const).map((cat) => (
                   <button
                     key={cat}
                     type="button"
@@ -481,11 +492,15 @@ export const PostListingModal: React.FC<PostListingModalProps> = ({
                       category === cat
                         ? cat === 'cars_vehicles' ? 'bg-blue-600 text-white border-blue-600 shadow-2xs'
                         : cat === 'heavy_machinery' ? 'bg-amber-600 text-white border-amber-600 shadow-2xs'
-                        : 'bg-emerald-600 text-white border-emerald-600 shadow-2xs'
+                        : cat === 'properties' ? 'bg-emerald-600 text-white border-emerald-600 shadow-2xs'
+                        : 'bg-violet-600 text-white border-violet-600 shadow-2xs'
                         : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
                     }`}
                   >
-                    {cat === 'cars_vehicles' ? 'Cars & Vehicles' : cat === 'heavy_machinery' ? 'Heavy Machinery' : 'Properties'}
+                    {cat === 'cars_vehicles' ? 'Cars & Vehicles'
+                      : cat === 'heavy_machinery' ? 'Heavy Machinery'
+                      : cat === 'properties' ? 'Properties'
+                      : 'General Goods'}
                   </button>
                 ))}
               </div>
@@ -559,6 +574,52 @@ export const PostListingModal: React.FC<PostListingModalProps> = ({
             {category === 'cars_vehicles' && renderVehicleFields()}
             {category === 'heavy_machinery' && renderMachineryFields()}
             {category === 'properties' && renderPropertyFields()}
+            {category === 'general_goods' && (
+              <div className="space-y-4 bg-violet-50/50 border border-violet-100 rounded-xl p-4">
+                <h4 className="text-xs font-bold uppercase text-violet-700 flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-violet-500" />
+                  Marketplace Details
+                </h4>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className={labelClass}>Sub-Category</label>
+                    <select
+                      value={subCategory}
+                      onChange={(e) => setSubCategory(e.target.value)}
+                      className={inputClass}
+                    >
+                      <option value="">Select sub-category</option>
+                      <option value="Car Parts">Car Parts</option>
+                      <option value="Car Rentals">Car Rentals</option>
+                      <option value="Electronics">Electronics</option>
+                      <option value="Other">Other</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className={labelClass}>Listing Type</label>
+                    <select
+                      value={listingType}
+                      onChange={(e) => setListingType(e.target.value as typeof listingType)}
+                      className={inputClass}
+                    >
+                      <option value="For Sale">For Sale</option>
+                      <option value="For Rent">For Rent</option>
+                      <option value="Service">Service</option>
+                    </select>
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className={labelClass}>Condition</label>
+                    <select value={condition} onChange={(e) => setCondition(e.target.value)} className={inputClass}>
+                      <option value="Brand New">Brand New</option>
+                      <option value="Excellent Condition">Excellent Condition</option>
+                      <option value="Used">Used</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Image Upload — Cloudinary */}
             <div>

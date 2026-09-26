@@ -10,6 +10,7 @@ import { ServicesScreen } from './screens/ServicesScreen';
 import { BlogScreen } from './screens/BlogScreen';
 import { ListingDetailScreen } from './screens/ListingDetailScreen';
 import { AdminScreen } from './screens/AdminScreen';
+import { MarketplaceScreen } from './screens/MarketplaceScreen';
 import { PostListingModal } from './components/PostListingModal';
 import { AccountModal } from './components/AccountModal';
 import { ServicesModal } from './components/ServicesModal';
@@ -27,6 +28,7 @@ function screenToPath(screen: ScreenType, listingId?: string): string {
     case 'services': return '/services';
     case 'blog': return '/blog';
     case 'admin': return '/admin';
+    case 'marketplace': return '/marketplace';
     case 'listing_detail': return listingId ? `/listing/${listingId}` : '/';
     default: return '/';
   }
@@ -40,6 +42,7 @@ function pathToScreen(path: string): { screen: ScreenType; listingId?: string } 
   if (path === '/services') return { screen: 'services' };
   if (path === '/blog') return { screen: 'blog' };
   if (path === '/admin') return { screen: 'admin' };
+  if (path === '/marketplace') return { screen: 'marketplace' };
   if (path.startsWith('/listing/')) {
     const parts = path.split('/');
     const listingId = parts[2];
@@ -166,6 +169,12 @@ export function App() {
         description: 'Read expert articles on heavy equipment maintenance, EPA fumigation compliance, vehicle selection, and real estate market trends in Ghana.',
         canonicalUrl: 'https://akwasijob.com/blog',
       });
+    } else if (currentScreen === 'marketplace') {
+      updatePageSEO({
+        title: 'Marketplace — Car Parts, Rentals, Electronics & More | AkwasiJob',
+        description: 'Browse AkwasiJob Marketplace for car parts, car rentals, electronics, and general goods in Ghana. All listings verified and posted by AkwasiJob.',
+        canonicalUrl: 'https://akwasijob.com/marketplace',
+      });
     } else if (currentScreen === 'admin') {
       updatePageSEO({
         title: 'Admin Portal | AkwasiJob Marketplace',
@@ -289,6 +298,10 @@ export function App() {
           <BlogScreen
             onNavigate={navigate}
           />
+        )}
+
+        {currentScreen === 'marketplace' && (
+          <MarketplaceScreen />
         )}
 
         {currentScreen === 'listing_detail' && selectedListing && (

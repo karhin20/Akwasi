@@ -108,6 +108,18 @@ export const Header: React.FC<HeaderProps> = ({
               Blog &amp; Articles
             </button>
 
+            <button
+              id="nav-marketplace-btn"
+              onClick={() => onNavigate('marketplace')}
+              className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors cursor-pointer ${
+                currentScreen === 'marketplace'
+                  ? 'text-orange-500 font-semibold'
+                  : 'text-slate-700 hover:text-orange-500'
+              }`}
+            >
+              Marketplace
+            </button>
+
           </nav>
         </div>
 
@@ -229,6 +241,17 @@ export const Header: React.FC<HeaderProps> = ({
               }`}
             >
               Blog &amp; Articles
+            </button>
+            <button
+              onClick={() => {
+                onNavigate('marketplace');
+                setMobileMenuOpen(false);
+              }}
+              className={`text-left p-2.5 rounded-lg text-sm font-medium transition-colors ${
+                currentScreen === 'marketplace' ? 'bg-orange-500 text-white font-semibold' : 'text-slate-800 hover:bg-slate-100'
+              }`}
+            >
+              Marketplace
             </button>
           </div>
 

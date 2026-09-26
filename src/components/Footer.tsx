@@ -145,6 +145,14 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate, onOpenService, onOpe
                 Insights &amp; Blog
               </button>
             </li>
+            <li>
+              <button
+                onClick={() => onNavigate('marketplace')}
+                className="font-sans text-sm text-slate-400 hover:text-white transition-colors text-left cursor-pointer"
+              >
+                Marketplace
+              </button>
+            </li>
           </ul>
         </div>
 

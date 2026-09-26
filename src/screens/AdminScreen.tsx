@@ -1315,6 +1315,7 @@ export const AdminScreen: React.FC<AdminScreenProps> = ({
                   <option value="heavy_machinery">Heavy Machinery</option>
                   <option value="cars_vehicles">Cars &amp; Vehicles</option>
                   <option value="properties">Properties</option>
+                  <option value="general_goods">Marketplace (General Goods)</option>
                 </select>
 
                 <select
