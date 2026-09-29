@@ -105,7 +105,7 @@ export const Header: React.FC<HeaderProps> = ({
                   : 'text-slate-700 hover:text-orange-500'
               }`}
             >
-              Blog &amp; Articles
+              Blog 
             </button>
 
             <button
@@ -240,7 +240,7 @@ export const Header: React.FC<HeaderProps> = ({
                 currentScreen === 'blog' ? 'bg-orange-500 text-white font-semibold' : 'text-slate-800 hover:bg-slate-100'
               }`}
             >
-              Blog &amp; Articles
+              Blog
             </button>
             <button
               onClick={() => {
